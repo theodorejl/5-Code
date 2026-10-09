@@ -1,0 +1,1332 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050d18;
+    --panel: rgba(12, 26, 44, .78);
+    --panel2: rgba(20, 40, 66, .55);
+    --line: rgba(120, 180, 255, .13);
+    --text: #e8f1ff;
+    --muted: #8ea7c7;
+    --teal: #2ee6c5;
+    --violet: #a46bff;
+    --orange: #ff8a3d;
+    --blue: #4aa8ff;
+    --red: #ff4d6d;
+    --amber: #ffc145;
+    --green: #3ddc84;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; color: var(--text); font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body {
+    background:
+      radial-gradient(1100px 600px at 5% -10%, rgba(46, 230, 197, .10), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(164, 107, 255, .13), transparent 60%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  .app { max-width: 1400px; margin: 0 auto; padding: 18px 16px 28px; display: flex; flex-direction: column; gap: 16px; }
+  .display { font-family: "Space Grotesk", Inter, system-ui, sans-serif; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .04);
+  }
+  .panel-title { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin: 0 0 10px; }
+
+  /* ---------- Header ---------- */
+  header { display: grid; grid-template-columns: 1fr minmax(300px, 520px); gap: 16px; align-items: stretch; }
+  .brand { display: flex; gap: 14px; align-items: center; padding: 6px 4px; }
+  .logo { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--orange), #ff3d8b 60%, var(--violet)); box-shadow: 0 8px 30px rgba(255, 90, 120, .35); flex: none; }
+  .brand h1 { margin: 0; font-size: clamp(24px, 3.4vw, 36px); letter-spacing: -.02em; line-height: 1.05; }
+  .brand h1 span { background: linear-gradient(90deg, var(--teal), var(--blue) 50%, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .brand p { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; }
+
+  .mission { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden; transition: border-color .4s, box-shadow .4s; }
+  .mission.done { border-color: rgba(61, 220, 132, .55); box-shadow: 0 0 0 1px rgba(61, 220, 132, .25), 0 10px 40px rgba(61, 220, 132, .15); }
+  .mission-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .mission h2 { margin: 0; font-size: 15px; }
+  .mission p { margin: 0; color: #c4d4ea; font-size: 13px; line-height: 1.45; }
+  .pill { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255, 193, 69, .14); color: var(--amber); white-space: nowrap; }
+  .mission.done .pill { background: rgba(61, 220, 132, .16); color: var(--green); }
+  .mission-nav { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, .15); border: 1px solid rgba(255, 255, 255, .2); }
+  .dot.active { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .dot.won { background: var(--green); border-color: var(--green); }
+
+  button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 7px 12px; cursor: pointer; font-size: 12.5px; transition: background .2s, border-color .2s, transform .1s; }
+  button:hover { background: rgba(74, 168, 255, .16); border-color: rgba(74, 168, 255, .45); }
+  button:active { transform: translateY(1px); }
+
+  /* ---------- Grids ---------- */
+  .row-top { display: grid; grid-template-columns: minmax(0, 2.15fr) minmax(0, 1fr); gap: 16px; }
+  .row-bottom { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px; }
+
+  /* ---------- Scene ---------- */
+  .scene { position: relative; overflow: hidden; min-height: 400px; }
+  .scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 18px; }
+  .hud { position: absolute; left: 14px; top: 14px; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 28px); pointer-events: none; }
+  .chip { background: rgba(5, 13, 24, .62); border: 1px solid rgba(255, 255, 255, .1); border-radius: 12px; padding: 7px 11px; backdrop-filter: blur(6px); }
+  .chip small { display: block; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .chip b { font-family: "Space Grotesk", Inter, sans-serif; font-size: 17px; font-weight: 600; }
+  .chip b i { font-style: normal; font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+  .kite-state { position: absolute; left: 14px; bottom: 14px; pointer-events: none; display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+  .kite-state .led { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
+  .kite-state.off .led { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+  /* ---------- Compass ---------- */
+  .compass { padding: 14px; display: flex; flex-direction: column; }
+  .compass-cv { width: 100%; aspect-ratio: 1 / 1; max-width: 100%; display: block; }
+  .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 12px; color: #c4d4ea; margin-top: 8px; }
+  .legend span { display: flex; align-items: center; gap: 7px; }
+  .legend i { width: 18px; height: 3px; border-radius: 3px; display: inline-block; flex: none; }
+
+  /* ---------- Controls ---------- */
+  .controls { padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 18px; align-items: center; }
+  .knobs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .knob { display: flex; flex-direction: column; align-items: center; gap: 2px; user-select: none; -webkit-user-select: none; }
+  .knob svg { width: 100%; max-width: 132px; aspect-ratio: 1 / 1; cursor: grab; touch-action: none; outline: none; border-radius: 50%; }
+  .knob svg:focus-visible { box-shadow: 0 0 0 3px rgba(74, 168, 255, .55); }
+  .knob svg.dragging { cursor: grabbing; }
+  .knob-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; text-align: center; }
+  .knob-value { font-family: "Space Grotesk", Inter, sans-serif; font-size: 20px; font-weight: 600; }
+  .knob-value i { font-style: normal; color: var(--muted); font-size: 12px; margin-left: 3px; font-weight: 500; }
+  .side-ctrl { display: flex; flex-direction: column; gap: 12px; }
+  .switch { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line); cursor: pointer; }
+  .switch .track { width: 46px; height: 26px; border-radius: 999px; background: rgba(255, 255, 255, .15); position: relative; transition: background .25s; flex: none; }
+  .switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .25s; }
+  .switch.on .track { background: linear-gradient(90deg, var(--orange), #ff3d8b); }
+  .switch.on .track::after { transform: translateX(20px); }
+  .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .presets button { padding: 8px 6px; font-size: 12px; }
+  .hint { font-size: 11.5px; color: var(--muted); line-height: 1.4; margin: 0; }
+
+  /* ---------- Gauges ---------- */
+  .gauges { padding: 16px; }
+  .gauge-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .gauge { position: relative; text-align: center; }
+  .gauge canvas { width: 100%; aspect-ratio: 1.55 / 1; display: block; }
+  .gauge .g-val { font-family: "Space Grotesk", Inter, sans-serif; font-size: clamp(18px, 2.3vw, 26px); font-weight: 700; margin-top: -10px; }
+  .gauge .g-lab { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .gauge .g-sub { font-size: 11.5px; color: #c4d4ea; margin-top: 2px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+  .kpi { background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+  .kpi small { display: block; font-size: 10.5px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+  .kpi b { font-family: "Space Grotesk", Inter, sans-serif; font-size: 20px; font-weight: 600; display: block; margin-top: 2px; }
+  .kpi em { font-style: normal; font-size: 11.5px; }
+  .cube { margin-top: 16px; background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .cube-head, .cube-row { display: grid; grid-template-columns: 74px minmax(0, 1fr) 54px; gap: 10px; align-items: center; }
+  .cube-head { font-size: 10.5px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+  .cube-row { font-size: 12.5px; padding: 3px 0; border-radius: 8px; transition: background .3s; }
+  .cube-row.cur { background: rgba(46, 230, 197, .1); }
+  .cube-row .v { font-family: "Space Grotesk", Inter, sans-serif; font-weight: 600; padding-left: 6px; }
+  .cube-row .track { height: 10px; border-radius: 99px; background: rgba(255, 255, 255, .06); overflow: hidden; }
+  .cube-row .fill { height: 100%; border-radius: 99px; transition: width .4s; }
+  .cube-row .pct { text-align: right; font-family: "Space Grotesk", Inter, sans-serif; font-weight: 600; padding-right: 6px; }
+  .up { color: var(--red); } .down { color: var(--green); } .flat { color: var(--muted); }
+
+  /* ---------- Analysis ---------- */
+  .analysis { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .headline { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .headline .big { font-family: "Space Grotesk", Inter, sans-serif; font-size: clamp(30px, 4vw, 44px); font-weight: 700; letter-spacing: -.02em; }
+  .headline .big.good { background: linear-gradient(90deg, var(--teal), var(--green)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .headline .big.bad { color: var(--red); }
+  .headline span { color: var(--muted); font-size: 13px; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; gap: 8px; }
+  .bar { height: 30px; border-radius: 10px; overflow: hidden; display: flex; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); }
+  .bar > div { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+  .seg-rest { background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .07) 0 6px, rgba(255, 255, 255, .03) 6px 12px); color: var(--muted); }
+  .seg-speed { background: linear-gradient(90deg, #14b8a6, var(--teal)); color: #032; }
+  .seg-kite { background: linear-gradient(90deg, #7c4dff, var(--violet)); color: #fff; }
+  .seg-extra { background: linear-gradient(90deg, #c2185b, var(--red)); color: #fff; }
+  .insight { background: linear-gradient(135deg, rgba(46, 230, 197, .08), rgba(164, 107, 255, .08)); border: 1px solid var(--line); border-radius: 14px; padding: 11px 13px; font-size: 13px; line-height: 1.5; color: #d6e3f5; }
+  .insight b { color: #fff; }
+  .curve-wrap { position: relative; }
+  .curve-wrap canvas { width: 100%; height: 230px; display: block; }
+
+  @media (max-width: 980px) {
+    header, .row-top, .row-bottom { grid-template-columns: minmax(0, 1fr); }
+    .controls { grid-template-columns: minmax(0, 1fr); }
+    .scene { min-height: 340px; }
+    .compass-cv { max-width: 360px; margin: 0 auto; }
+  }
+  @media (max-width: 560px) {
+    .knobs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .gauge-grid { grid-template-columns: minmax(0, 1fr); max-width: 300px; margin: 0 auto; }
+  }
+</style>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+          <path d="M3 12 C 9 3, 21 3, 27 12 L 22 13 C 18 8, 12 8, 8 13 Z" fill="#fff"/>
+          <path d="M8 13 L15 26 M22 13 L15 26" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="display">Kite<span>Cargo</span></h1>
+        <p>Un porte-conteneurs tracté par un kite de 400 m² · trajet Rotterdam → New York (3 400 milles)</p>
+      </div>
+    </div>
+    <div class="panel mission" id="mission">
+      <div class="mission-top">
+        <h2 class="display" id="mTitle"></h2>
+        <span class="pill" id="mStatus">En cours</span>
+      </div>
+      <p id="mText"></p>
+      <div class="mission-nav">
+        <button id="mPrev" aria-label="Mission précédente">◀</button>
+        <div class="dots" id="mDots"></div>
+        <button id="mNext">Mission suivante ▶</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="row-top">
+    <div class="panel scene" id="sceneBox">
+      <canvas id="scene"></canvas>
+      <div class="hud">
+        <div class="chip"><small>Bateau</small><b id="hSpeed">–</b></div>
+        <div class="chip"><small>Vent réel</small><b id="hWind">–</b></div>
+        <div class="chip"><small>Vent apparent (kite)</small><b id="hApp">–</b></div>
+        <div class="chip"><small>Traction kite</small><b id="hForce">–</b></div>
+      </div>
+      <div class="kite-state" id="kiteState"><span class="led"></span><span id="kiteStateText"></span></div>
+    </div>
+    <div class="panel compass">
+      <p class="panel-title">Vue du dessus</p>
+      <canvas class="compass-cv" id="compass"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--green)"></i>Cap &amp; vitesse</span>
+        <span><i style="background:var(--blue)"></i>Vent réel</span>
+        <span><i style="background:var(--teal)"></i>Vent apparent</span>
+        <span><i style="background:var(--orange)"></i>Traction du kite</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel controls">
+    <div class="knobs" id="knobs"></div>
+    <div class="side-ctrl">
+      <div class="switch on" id="kiteSwitch" role="switch" aria-checked="true" tabindex="0">
+        <div><div style="font-weight:600;font-size:13.5px">Kite déployé</div><div class="hint">Active / rentre l'aile</div></div>
+        <div class="track"></div>
+      </div>
+      <div class="presets">
+        <button data-preset="ref">Référence</button>
+        <button data-preset="slow">Slow steaming</button>
+        <button data-preset="ideal">Vent idéal</button>
+        <button data-preset="storm">Vent de face</button>
+      </div>
+      <p class="hint">Tourne les potards (glisser, molette ou flèches du clavier). Double-clic pour revenir à la valeur par défaut.</p>
+    </div>
+  </section>
+
+  <section class="row-bottom">
+    <div class="panel gauges">
+      <p class="panel-title">Gains par rapport à la référence (14 nœuds, sans kite)</p>
+      <div class="gauge-grid">
+        <div class="gauge"><canvas id="g1"></canvas><div class="g-val" id="g1v">–</div><div class="g-lab">Carburant économisé</div><div class="g-sub" id="g1s"></div></div>
+        <div class="gauge"><canvas id="g2"></canvas><div class="g-val" id="g2v">–</div><div class="g-lab">CO₂ évité / trajet</div><div class="g-sub" id="g2s"></div></div>
+        <div class="gauge"><canvas id="g3"></canvas><div class="g-val" id="g3v">–</div><div class="g-lab">Poussée utile du kite</div><div class="g-sub" id="g3s"></div></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><small>Carburant / trajet</small><b id="kFuel">–</b><em id="kFuelD"></em></div>
+        <div class="kpi"><small>CO₂ / trajet</small><b id="kCo2">–</b><em id="kCo2D"></em></div>
+        <div class="kpi"><small>Durée du trajet</small><b id="kDays">–</b><em id="kDaysD"></em></div>
+        <div class="kpi"><small>Puissance moteur</small><b id="kPow">–</b><em id="kPowD"></em></div>
+      </div>
+      <div class="cube">
+        <p class="panel-title" style="margin:0 0 4px">La loi du cube · sans kite</p>
+        <p class="hint" style="margin:0 0 10px">Puissance ∝ V³ : un peu moins vite, c'est beaucoup moins de carburant (même en comptant un trajet plus long).</p>
+        <div class="cube-head"><span>Vitesse</span><span>Carburant par trajet</span><span></span></div>
+        <div id="cubeRows"></div>
+      </div>
+    </div>
+
+    <div class="panel analysis">
+      <p class="panel-title" style="margin:0">D'où viennent les économies ?</p>
+      <div class="headline"><div class="big display" id="aBig">–</div><span id="aSub"></span></div>
+      <div>
+        <div class="bar-label"><span>Émissions du trajet (100 % = référence)</span><span id="aRest"></span></div>
+        <div class="bar" id="barMain">
+          <div class="seg-rest" id="segRest"></div>
+          <div class="seg-speed" id="segSpeed"></div>
+          <div class="seg-kite" id="segKite"></div>
+        </div>
+      </div>
+      <div>
+        <div class="bar-label"><span>Répartition du gain</span><span id="aSplit"></span></div>
+        <div class="bar">
+          <div class="seg-speed" id="shareSpeed"></div>
+          <div class="seg-kite" id="shareKite"></div>
+        </div>
+      </div>
+      <div class="insight" id="insight"></div>
+      <div class="curve-wrap"><canvas id="curve"></canvas></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ================================================================
+  //  MODÈLE PHYSIQUE (simplifié mais aux bons ordres de grandeur)
+  // ================================================================
+  const KN = 0.514444;          // m/s par nœud
+  const RHO = 1.225;            // densité de l'air (kg/m³)
+  const CFG = {
+    VREF: 14,      // vitesse de référence (nœuds)
+    RREF: 780,     // résistance de carène à 14 nd (kN)
+    ETA: 0.70,     // rendement propulsif
+    SFOC: 0.180,   // conso spécifique (t de fioul / MWh)
+    CO2F: 3.114,   // t CO2 / t fioul lourd
+    DIST: 3400,    // milles nautiques
+    AF: 700,       // surface frontale des superstructures (m²)
+    CX: 0.8,       // coefficient de traînée aérienne
+    KA: 400,       // surface du kite (m²)
+    KC: 4.0,       // coefficient de traction en vol dynamique (en 8)
+    TMAX: 250,     // limite de traction du câble (kN)
+    ELEV: 30,      // élévation moyenne du kite (°)
+    SHEAR: 1.3,    // vent plus fort à 200-300 m d'altitude
+    KMAXSHARE: 0.6 // le kite fournit au plus 60 % de la poussée
+  };
+
+  const rad = d => d * Math.PI / 180;
+  const deg = r => r * 180 / Math.PI;
+  const norm180 = a => { a = ((a + 180) % 360 + 360) % 360 - 180; return a; };
+  const norm360 = a => ((a % 360) + 360) % 360;
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const smooth = x => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); };
+  const lerp = (a, b, t) => a + (b - a) * t;
+
+  // Efficacité de la traction vers l'avant selon l'angle du vent apparent (0° = vent de face)
+  function kiteEfficiency(awaAbs) {
+    if (awaAbs < 45) return 0;
+    if (awaAbs < 100) return 0.85 * smooth((awaAbs - 45) / 55);
+    return 0.85 + 0.15 * smooth((awaAbs - 100) / 50);
+  }
+
+  function apparent(windVec, shipVec) {
+    const ax = windVec[0] - shipVec[0], ay = windVec[1] - shipVec[1];
+    const speed = Math.hypot(ax, ay);
+    const fromBearing = norm360(deg(Math.atan2(-ax, -ay)));
+    return { ax, ay, speed, fromBearing };
+  }
+
+  function simulate(p, vKn, kiteOn) {
+    const V = vKn * KN;
+    const hd = rad(p.heading), wd = rad(p.windDir);
+    const ship = [V * Math.sin(hd), V * Math.cos(hd)];
+    const tw = p.windSpeed * KN;
+    const wind = [-tw * Math.sin(wd), -tw * Math.cos(wd)];
+    const windAlt = [wind[0] * CFG.SHEAR, wind[1] * CFG.SHEAR];
+
+    const deck = apparent(wind, ship);
+    const awa = norm180(deck.fromBearing - p.heading);       // angle du vent apparent / étrave
+    const alt = apparent(windAlt, ship);
+    const awaK = norm180(alt.fromBearing - p.heading);
+
+    // Résistances
+    const Rhull = CFG.RREF * Math.pow(vKn / CFG.VREF, 2);
+    const Rair = 0.5 * RHO * CFG.AF * CFG.CX * deck.speed * deck.speed * Math.cos(rad(awa)) / 1000;
+    const R0 = Math.max(Rhull + Rair, 0);
+
+    // Kite
+    let state = "flying", T = 0, fwd = 0, lat = 0, eff = 0;
+    const vaKkn = alt.speed / KN;
+    if (!kiteOn) state = "off";
+    else if (p.windSpeed > 38) state = "storm";
+    else if (vaKkn < 8) state = "calm";
+    else if (Math.abs(awaK) < 45) state = "headwind";
+    if (state === "flying") {
+      eff = kiteEfficiency(Math.abs(awaK));
+      T = Math.min(0.5 * RHO * CFG.KA * CFG.KC * alt.speed * alt.speed / 1000, CFG.TMAX);
+      const Th = T * Math.cos(rad(CFG.ELEV));
+      lat = Th * Math.sqrt(1 - eff * eff);
+      fwd = clamp(Th * eff - 0.06 * lat, 0, CFG.KMAXSHARE * R0);
+    }
+    // Direction de traction (relative à l'étrave) pour l'animation
+    const flowRel = norm180(awaK + 180);
+    const pullAz = Math.sign(flowRel || 1) * Math.min(Math.abs(flowRel), deg(Math.acos(clamp(eff, 0, 1))));
+
+    const R = Math.max(R0 - fwd, 0);
+    const Pbrake = R * V / CFG.ETA;                // kW
+    const hours = CFG.DIST / vKn;
+    const fuel = Pbrake / 1000 * CFG.SFOC * hours; // t
+    const co2 = fuel * CFG.CO2F;
+    return {
+      vKn, V, deck, awa, alt, awaK, vaKkn, Rhull, Rair, R0, R,
+      state, T, fwd, lat, eff, pullAz, flowRelDeck: norm180(awa + 180),
+      Pbrake, hours, fuel, co2
+    };
+  }
+
+  // Décomposition équitable (moyenne des deux ordres : vitesse puis kite, kite puis vitesse)
+  function decompose(p, vKn, kiteOn) {
+    const E0 = simulate(p, CFG.VREF, false).co2;
+    const E1 = simulate(p, vKn, false).co2;
+    const E2 = simulate(p, CFG.VREF, kiteOn).co2;
+    const E3 = simulate(p, vKn, kiteOn).co2;
+    const speed = ((E0 - E1) + (E2 - E3)) / 2;
+    const kite = ((E0 - E2) + (E1 - E3)) / 2;
+    return { E0, E3, speed, kite, total: E0 - E3 };
+  }
+
+  // ================================================================
+  //  ÉTAT
+  // ================================================================
+  const DEFAULTS = { speed: 14, heading: 270, windDir: 30, windSpeed: 20 };
+  const P = { ...DEFAULTS, kite: true };
+  let S = null; // résultats de la simulation
+
+  function recompute() {
+    const p = { heading: P.heading, windDir: P.windDir, windSpeed: P.windSpeed };
+    const sim = simulate(p, P.speed, P.kite);
+    const ref = simulate(p, CFG.VREF, false);
+    const dec = decompose(p, P.speed, P.kite);
+    const curve = [];
+    for (let v = 8; v <= 16.001; v += 0.25) {
+      curve.push({ v, no: simulate(p, v, false).co2, kite: simulate(p, v, P.kite).co2 });
+    }
+    const savePct = (dec.total / dec.E0) * 100;
+    S = { p, sim, ref, dec, curve, savePct, days: sim.hours / 24 };
+    updateDom();
+    checkMission();
+  }
+
+  // ================================================================
+  //  POTARDS
+  // ================================================================
+  const CARD = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
+  const cardinal = a => CARD[Math.round(norm360(a) / 45) % 8];
+  const knobs = {};
+
+  function arcPath(cx, cy, r, a0, a1) {
+    const p0 = [cx + r * Math.sin(rad(a0)), cy - r * Math.cos(rad(a0))];
+    const p1 = [cx + r * Math.sin(rad(a1)), cy - r * Math.cos(rad(a1))];
+    const large = Math.abs(a1 - a0) > 180 ? 1 : 0;
+    return `M${p0[0].toFixed(2)} ${p0[1].toFixed(2)} A${r} ${r} 0 ${large} 1 ${p1[0].toFixed(2)} ${p1[1].toFixed(2)}`;
+  }
+
+  function createKnob(o) {
+    const wrap = !!o.wrap;
+    const sweep = wrap ? 360 : 270, start = wrap ? 0 : -135;
+    const box = document.createElement("div");
+    box.className = "knob";
+    const id = "k" + o.key;
+    let ticks = "";
+    const nT = wrap ? 36 : 28;
+    for (let i = 0; i <= nT; i++) {
+      if (wrap && i === nT) break;
+      const a = start + sweep * i / nT;
+      const major = wrap ? i % 9 === 0 : i % 7 === 0;
+      const r1 = 56, r2 = major ? 50 : 53;
+      ticks += `<line x1="${60 + r1 * Math.sin(rad(a))}" y1="${60 - r1 * Math.cos(rad(a))}" x2="${60 + r2 * Math.sin(rad(a))}" y2="${60 - r2 * Math.cos(rad(a))}" stroke="rgba(255,255,255,${major ? .55 : .2})" stroke-width="${major ? 1.6 : 1}" stroke-linecap="round"/>`;
+    }
+    let letters = "";
+    if (wrap) {
+      ["N", "E", "S", "O"].forEach((t, i) => {
+        const a = i * 90, r = 41;
+        letters += `<text x="${60 + r * Math.sin(rad(a))}" y="${60 - r * Math.cos(rad(a)) + 3.5}" text-anchor="middle" font-size="9" font-weight="700" fill="${i === 0 ? o.color : "rgba(255,255,255,.5)"}" font-family="Space Grotesk, Inter, sans-serif">${t}</text>`;
+      });
+    }
+    box.innerHTML = `
+      <svg viewBox="0 0 120 120" tabindex="0" role="slider" aria-label="${o.label}" aria-valuemin="${o.min}" aria-valuemax="${o.max}">
+        <defs>
+          <radialGradient id="${id}b" cx="40%" cy="35%" r="75%">
+            <stop offset="0" stop-color="#3a4d68"/><stop offset=".55" stop-color="#18263a"/><stop offset="1" stop-color="#0a1320"/>
+          </radialGradient>
+          <linearGradient id="${id}g" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="${o.color2}"/><stop offset="1" stop-color="${o.color}"/>
+          </linearGradient>
+          <filter id="${id}f" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter>
+        </defs>
+        ${ticks}
+        <path d="${wrap ? arcPath(60, 60, 47, 0, 359.9) : arcPath(60, 60, 47, start, start + sweep)}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5" stroke-linecap="round"/>
+        <path class="kv-glow" fill="none" stroke="${o.color}" stroke-width="6" stroke-linecap="round" opacity=".55" filter="url(#${id}f)"/>
+        <path class="kv" fill="none" stroke="url(#${id}g)" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="60" cy="60" r="35" fill="url(#${id}b)" stroke="rgba(255,255,255,.12)"/>
+        <circle cx="60" cy="60" r="29" fill="none" stroke="rgba(255,255,255,.05)"/>
+        ${letters}
+        <g class="kp"><line x1="60" y1="${wrap ? 31 : 32}" x2="60" y2="${wrap ? 46 : 44}" stroke="${o.color}" stroke-width="3.2" stroke-linecap="round"/>
+        ${wrap ? `<path d="M60 26 L55.5 33 L64.5 33 Z" fill="${o.color}"/>` : ""}</g>
+        <circle cx="60" cy="60" r="5" fill="#0a1320" stroke="rgba(255,255,255,.2)"/>
+      </svg>
+      <div class="knob-label">${o.label}</div>
+      <div class="knob-value" aria-live="off"></div>`;
+    document.getElementById("knobs").appendChild(box);
+
+    const svg = box.querySelector("svg");
+    const kv = box.querySelector(".kv"), kg = box.querySelector(".kv-glow"), kp = box.querySelector(".kp");
+    const out = box.querySelector(".knob-value");
+
+    const toAngle = v => wrap ? v : start + (v - o.min) / (o.max - o.min) * sweep;
+    function render() {
+      const v = P[o.key];
+      const a = toAngle(v);
+      let d;
+      if (wrap) d = arcPath(60, 60, 47, a - 16, a + 16);
+      else d = (a - start) < 0.5 ? "" : arcPath(60, 60, 47, start, a);
+      kv.setAttribute("d", d); kg.setAttribute("d", d);
+      kp.setAttribute("transform", `rotate(${a} 60 60)`);
+      out.innerHTML = o.fmt(v);
+      svg.setAttribute("aria-valuenow", v);
+    }
+    function set(v, silent) {
+      if (wrap) v = norm360(v);
+      else v = clamp(v, o.min, o.max);
+      P[o.key] = Math.round(v / o.step) * o.step % (wrap ? 360 : Infinity);
+      render();
+      if (!silent) recompute();
+    }
+
+    let last = null, acc = 0;
+    const angleOf = e => {
+      const r = svg.getBoundingClientRect();
+      return deg(Math.atan2(e.clientX - (r.left + r.width / 2), -(e.clientY - (r.top + r.height / 2))));
+    };
+    svg.addEventListener("pointerdown", e => {
+      svg.setPointerCapture(e.pointerId); svg.classList.add("dragging");
+      last = angleOf(e); acc = P[o.key]; e.preventDefault();
+    });
+    svg.addEventListener("pointermove", e => {
+      if (last === null) return;
+      const a = angleOf(e);
+      const d = norm180(a - last); last = a;
+      acc += d * (wrap ? 1 : (o.max - o.min) / sweep);
+      if (!wrap) acc = clamp(acc, o.min, o.max);
+      set(acc);
+    });
+    const end = () => { last = null; svg.classList.remove("dragging"); };
+    svg.addEventListener("pointerup", end);
+    svg.addEventListener("pointercancel", end);
+    svg.addEventListener("wheel", e => { e.preventDefault(); set(P[o.key] + (e.deltaY < 0 ? 1 : -1) * o.wheel); }, { passive: false });
+    svg.addEventListener("keydown", e => {
+      if (["ArrowUp", "ArrowRight"].includes(e.key)) { set(P[o.key] + o.wheel); e.preventDefault(); }
+      if (["ArrowDown", "ArrowLeft"].includes(e.key)) { set(P[o.key] - o.wheel); e.preventDefault(); }
+    });
+    svg.addEventListener("dblclick", () => set(DEFAULTS[o.key]));
+    render();
+    knobs[o.key] = { set, render };
+  }
+
+  createKnob({ key: "speed", label: "Vitesse du bateau", min: 8, max: 16, step: 0.1, wheel: 0.5, color: "#2ee6c5", color2: "#3ddc84",
+    fmt: v => `${v.toFixed(1)}<i>nœuds</i>` });
+  createKnob({ key: "heading", label: "Cap du bateau", min: 0, max: 360, step: 1, wheel: 5, wrap: true, color: "#3ddc84", color2: "#2ee6c5",
+    fmt: v => `${Math.round(v)}°<i>${cardinal(v)}</i>` });
+  createKnob({ key: "windDir", label: "Vent venant du", min: 0, max: 360, step: 1, wheel: 5, wrap: true, color: "#4aa8ff", color2: "#a46bff",
+    fmt: v => `${Math.round(v)}°<i>${cardinal(v)}</i>` });
+  createKnob({ key: "windSpeed", label: "Vitesse du vent", min: 0, max: 45, step: 1, wheel: 1, color: "#a46bff", color2: "#4aa8ff",
+    fmt: v => `${Math.round(v)}<i>nœuds</i>` });
+
+  function setParams(o) {
+    for (const k of ["speed", "heading", "windDir", "windSpeed"]) if (k in o) knobs[k].set(o[k], true);
+    if ("kite" in o) setKite(o.kite, true);
+    recompute();
+  }
+
+  const sw = document.getElementById("kiteSwitch");
+  function setKite(on, silent) {
+    P.kite = on; sw.classList.toggle("on", on); sw.setAttribute("aria-checked", on);
+    if (!silent) recompute();
+  }
+  sw.addEventListener("click", () => setKite(!P.kite));
+  sw.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); setKite(!P.kite); } });
+
+  const PRESETS = {
+    ref:   { speed: 14, heading: 270, windDir: 30, windSpeed: 20, kite: false },
+    slow:  { speed: 11 },
+    ideal: { heading: 270, windDir: 20, windSpeed: 30, kite: true },
+    storm: { heading: 270, windDir: 270, windSpeed: 28 }
+  };
+  document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => setParams(PRESETS[b.dataset.preset])));
+
+  // ================================================================
+  //  MISSIONS
+  // ================================================================
+  const MISSIONS = [
+    { title: "Mission 1 · Le kite seul",
+      text: "Sans ralentir (vitesse ≥ 13,9 nœuds), joue sur le cap et le vent pour éviter au moins 15 % de CO₂ grâce au kite.",
+      check: s => P.speed >= 13.9 && s.savePct >= 15 },
+    { title: "Mission 2 · Ralentir",
+      text: "Garde la même météo et baisse la vitesse : divise les émissions du trajet par deux (≥ 50 % de CO₂ évité).",
+      check: s => s.savePct >= 50 },
+    { title: "Mission 3 · Tempête d'ouest",
+      text: "Le vent souffle de face à 28 nœuds : le kite ne peut rien faire. Trouve quand même 30 % d'économies.",
+      setup: { heading: 270, windDir: 270, windSpeed: 28, speed: 14, kite: true },
+      check: s => s.savePct >= 30 },
+    { title: "Mission 4 · Le bon compromis",
+      text: "Arrive à New York en moins de 11 jours tout en évitant au moins 35 % de CO₂ : il faudra combiner vitesse, cap et vent.",
+      setup: { heading: 270, windDir: 30, windSpeed: 20, speed: 14, kite: true },
+      check: s => s.days <= 11 && s.savePct >= 35 }
+  ];
+  let mIdx = 0;
+  const won = new Set();
+  const dotsBox = document.getElementById("mDots");
+  MISSIONS.forEach(() => { const d = document.createElement("div"); d.className = "dot"; dotsBox.appendChild(d); });
+  function showMission(i) {
+    mIdx = (i + MISSIONS.length) % MISSIONS.length;
+    const m = MISSIONS[mIdx];
+    document.getElementById("mTitle").textContent = m.title;
+    document.getElementById("mText").textContent = m.text;
+    if (m.setup) setParams(m.setup); else checkMission();
+  }
+  function checkMission() {
+    if (!S) return;
+    const ok = MISSIONS[mIdx].check(S);
+    if (ok) won.add(mIdx);
+    document.getElementById("mission").classList.toggle("done", ok);
+    document.getElementById("mStatus").textContent = ok ? "✓ Réussie" : (won.has(mIdx) ? "Déjà réussie" : "En cours");
+    [...dotsBox.children].forEach((d, i) => { d.classList.toggle("won", won.has(i)); d.classList.toggle("active", i === mIdx); });
+  }
+  document.getElementById("mPrev").addEventListener("click", () => showMission(mIdx - 1));
+  document.getElementById("mNext").addEventListener("click", () => showMission(mIdx + 1));
+
+  // ================================================================
+  //  DOM (chiffres, barres, texte)
+  // ================================================================
+  const $ = id => document.getElementById(id);
+  const fmt0 = x => Math.round(x).toLocaleString("fr-FR");
+  const fmt1 = x => x.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  function delta(el, cur, ref, unit, invert) {
+    const d = (cur - ref) / ref * 100;
+    const cls = Math.abs(d) < 0.5 ? "flat" : ((d < 0) !== !!invert ? "down" : "up");
+    el.className = cls;
+    el.textContent = Math.abs(d) < 0.5 ? "= référence" : `${d > 0 ? "+" : "−"}${fmt0(Math.abs(d))} % ${unit}`;
+  }
+  const STATE_TXT = {
+    flying: "Kite en vol · trajectoire en 8",
+    off: "Kite rentré",
+    calm: "Kite rentré · pas assez de vent",
+    storm: "Kite rentré · vent trop fort (sécurité)",
+    headwind: "Kite rentré · vent de face, il ne peut pas tirer vers l'avant"
+  };
+
+  function updateDom() {
+    const { sim, ref, dec } = S;
+    $("kFuel").textContent = `${fmt0(sim.fuel)} t`; delta($("kFuelD"), sim.fuel, ref.fuel, "");
+    $("kCo2").textContent = `${fmt0(sim.co2)} t`; delta($("kCo2D"), sim.co2, ref.co2, "");
+    const d = Math.floor(sim.hours / 24), h = Math.round(sim.hours % 24);
+    $("kDays").textContent = `${d} j ${h} h`;
+    const dh = sim.hours - ref.hours;
+    $("kDaysD").className = Math.abs(dh) < 0.5 ? "flat" : (dh > 0 ? "up" : "down");
+    $("kDaysD").textContent = Math.abs(dh) < 0.5 ? "= référence" : `${dh > 0 ? "+" : "−"}${fmt0(Math.abs(dh))} h`;
+    $("kPow").textContent = `${fmt1(sim.Pbrake / 1000)} MW`; delta($("kPowD"), sim.Pbrake, ref.Pbrake, "");
+
+    const total = dec.total / dec.E0 * 100;
+    const big = $("aBig");
+    big.textContent = Math.abs(total) < 0.5 ? "0 % de CO₂ évité" : total > 0 ? `−${fmt0(total)} % de CO₂` : `+${fmt0(-total)} % de CO₂`;
+    big.className = "big display " + (total >= 0.5 ? "good" : total <= -0.5 ? "bad" : "");
+    $("aSub").textContent = `${fmt0(Math.abs(dec.total))} t ${total >= 0 ? "évitées" : "en plus"} sur ${fmt0(dec.E0)} t (référence)`;
+
+    const sp = Math.max(dec.speed, 0) / dec.E0 * 100, kp = Math.max(dec.kite, 0) / dec.E0 * 100;
+    const rest = clamp(100 - sp - kp, 0, 100);
+    $("segRest").style.width = rest + "%"; $("segRest").textContent = rest > 14 ? `${fmt0(rest)} % émis` : "";
+    $("segSpeed").style.width = sp + "%"; $("segSpeed").textContent = sp > 9 ? `−${fmt0(sp)} % vitesse` : "";
+    $("segKite").style.width = kp + "%"; $("segKite").textContent = kp > 7 ? `−${fmt0(kp)} % kite` : "";
+    $("aRest").textContent = `${fmt0(dec.E3)} t émises`;
+
+    const gain = Math.max(dec.speed, 0) + Math.max(dec.kite, 0);
+    const shS = gain > 0 ? Math.max(dec.speed, 0) / gain * 100 : 0;
+    const shK = gain > 0 ? 100 - shS : 0;
+    $("shareSpeed").style.width = (gain > 0 ? shS : 0) + "%"; $("shareSpeed").textContent = shS > 12 ? `Vitesse ${fmt0(shS)} %` : "";
+    $("shareKite").style.width = (gain > 0 ? shK : 0) + "%"; $("shareKite").textContent = shK > 12 ? `Kite ${fmt0(shK)} %` : "";
+    $("aSplit").textContent = gain > 0 ? `${fmt0(shS)} % vitesse · ${fmt0(shK)} % kite` : "aucun gain";
+
+    // Texte d'analyse
+    const vRatio = P.speed / CFG.VREF;
+    let txt = "";
+    if (P.speed > CFG.VREF + 0.05) {
+      txt = `<b>Tu vas plus vite que la référence.</b> La puissance nécessaire croît comme le <b>cube</b> de la vitesse : +${fmt0((Math.pow(vRatio, 3) - 1) * 100)} % de puissance pour +${fmt0((vRatio - 1) * 100)} % de vitesse.`;
+    } else if (gain < 0.5) {
+      txt = `<b>Pas encore d'économies.</b> Deux leviers : <b>baisser la vitesse</b> (toujours efficace) ou trouver un <b>vent portant</b> pour que le kite tire vers l'avant.`;
+    } else {
+      txt = `Ici, <b>${fmt0(shS)} % du gain vient du ralentissement</b> et ${fmt0(shK)} % du kite. `;
+      if (shS >= 55) txt += `Ralentir reste le levier principal : à ${fmt1(P.speed)} nœuds, le moteur fournit ${fmt0(Math.pow(vRatio, 3) * 100)} % de la puissance de référence, et chaque mille parcouru coûte ${fmt0(vRatio * vRatio * 100)} % du carburant.`;
+      else if (P.speed >= CFG.VREF - 0.3) txt += `Tu n'as pas encore ralenti. Essaie de passer à 11–12 nœuds : le gain sera bien plus grand que celui du kite, et il est <b>garanti à chaque trajet</b>, quelle que soit la météo.`;
+      else if (shK > 0) txt += `Le vent est très favorable au kite… mais ce gain dépend de la météo et du cap, alors que celui du ralentissement est <b>garanti à chaque trajet</b>.`;
+      else txt += `Le kite n'apporte rien dans ces conditions : tout le gain vient du ralentissement.`;
+    }
+    if (P.kite && sim.state !== "flying") txt += ` <span style="color:var(--amber)">${STATE_TXT[sim.state]}.</span>`;
+    $("insight").innerHTML = txt;
+
+    // Jauges : textes
+    $("g1v").textContent = `${total >= 0 ? "" : "+"}${fmt0(Math.abs(total))} %`;
+    $("g1s").textContent = `${fmt0(Math.abs(ref.fuel - sim.fuel))} t de fioul ${total >= 0 ? "en moins" : "en plus"}`;
+    $("g2v").textContent = `${fmt0(Math.max(dec.total, 0))} t`;
+    $("g2s").textContent = `≈ ${fmt0(Math.max(dec.total, 0) / 4.6)} voitures pendant 1 an`;
+    $("g3v").textContent = `${fmt0(sim.fwd)} kN`;
+    $("g3s").textContent = sim.state === "flying" ? `${fmt0(sim.fwd / Math.max(sim.R0, 1) * 100)} % de la poussée nécessaire` : STATE_TXT[sim.state].replace("Kite rentré · ", "");
+
+    // Loi du cube (carène seule, sans vent) : carburant / trajet ∝ V²
+    const speeds = [16, 14, 13, 12, 11, 10];
+    const curV = Math.round(P.speed);
+    $("cubeRows").innerHTML = speeds.map(v => {
+      const pct = Math.pow(v / CFG.VREF, 2) * 100;
+      const col = colorAt([[0, "#2ee6c5"], [0.55, "#ffc145"], [1, "#ff4d6d"]], (pct - 50) / 80);
+      return `<div class="cube-row${v === curV ? " cur" : ""}"><span class="v">${v} nd</span>
+        <div class="track"><div class="fill" style="width:${pct / 1.35}%;background:${col}"></div></div>
+        <span class="pct" style="color:${col}">${fmt0(pct)} %</span></div>`;
+    }).join("");
+
+    $("kiteState").classList.toggle("off", sim.state !== "flying");
+    $("kiteStateText").textContent = STATE_TXT[sim.state];
+    curveDirty = true;
+  }
+
+  // ================================================================
+  //  CANVAS UTILITAIRES
+  // ================================================================
+  function setupCanvas(cv) {
+    const o = { cv, ctx: cv.getContext("2d"), w: 0, h: 0, dpr: 1 };
+    const resize = () => {
+      const r = cv.getBoundingClientRect();
+      o.dpr = Math.min(window.devicePixelRatio || 1, 2);
+      o.w = Math.max(r.width, 10); o.h = Math.max(r.height, 10);
+      cv.width = Math.round(o.w * o.dpr); cv.height = Math.round(o.h * o.dpr);
+      o.ctx.setTransform(o.dpr, 0, 0, o.dpr, 0, 0);
+      curveDirty = true;
+    };
+    new ResizeObserver(resize).observe(cv);
+    resize();
+    return o;
+  }
+  function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function colorAt(stops, t) {
+    t = clamp(t, 0, 1);
+    for (let i = 1; i < stops.length; i++) {
+      if (t <= stops[i][0]) {
+        const [t0, c0] = stops[i - 1], [t1, c1] = stops[i];
+        const k = (t - t0) / (t1 - t0 || 1), a = hexToRgb(c0), b = hexToRgb(c1);
+        return `rgb(${Math.round(lerp(a[0], b[0], k))},${Math.round(lerp(a[1], b[1], k))},${Math.round(lerp(a[2], b[2], k))})`;
+      }
+    }
+    return stops[stops.length - 1][1];
+  }
+
+  let curveDirty = true;
+
+  // ================================================================
+  //  SCÈNE PRINCIPALE
+  // ================================================================
+  const SC = setupCanvas($("scene"));
+  const scene = {
+    clouds: Array.from({ length: 9 }, (_, i) => ({ x: Math.random(), y: 0.05 + Math.random() * 0.38, s: 0.5 + Math.random() * 1.1, seed: i })),
+    smoke: [], trail: [], spray: [],
+    time: 0, sea: 0, kt: 0, deploy: 1, smokeAcc: 0, lastKite: null, force: 0
+  };
+  const CONT_COLORS = ["#e4572e", "#f3a712", "#2b59c3", "#669bbc", "#7bc950", "#e9ecef", "#d7263d", "#1b998b"];
+  const containers = [];
+  { let s = 7; const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    for (let i = 0; i < 40; i++) containers.push({ h: 2 + Math.floor(rnd() * 3), c: Array.from({ length: 5 }, () => CONT_COLORS[Math.floor(rnd() * CONT_COLORS.length)]) }); }
+
+  function drawCloud(ctx, x, y, s) {
+    ctx.save();
+    ctx.translate(x, y); ctx.scale(s, s);
+    const g = ctx.createLinearGradient(0, -30, 0, 20);
+    g.addColorStop(0, "rgba(255,225,215,.55)"); g.addColorStop(1, "rgba(150,140,190,.18)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 60, 14, 0, 0, Math.PI * 2);
+    ctx.ellipse(-22, -8, 26, 16, 0, 0, Math.PI * 2);
+    ctx.ellipse(10, -14, 30, 20, 0, 0, Math.PI * 2);
+    ctx.ellipse(34, -4, 20, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawScene(dt) {
+    const { ctx, w, h } = SC;
+    if (!S) return;
+    const sim = S.sim;
+    scene.time += dt;
+    const t = scene.time;
+    const horizon = h * 0.6;
+
+    // --- Ciel
+    const sky = ctx.createLinearGradient(0, 0, 0, horizon);
+    sky.addColorStop(0, "#060f22"); sky.addColorStop(0.45, "#173a66"); sky.addColorStop(0.8, "#7c5a8c"); sky.addColorStop(1, "#ffae7a");
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, horizon + 2);
+    // étoiles discrètes
+    ctx.fillStyle = "rgba(255,255,255,.5)";
+    for (let i = 0; i < 40; i++) {
+      const sx = (i * 137.5 % 1) * w + ((i * 73) % w), sy = ((i * 91) % 100) / 100 * horizon * 0.35;
+      ctx.globalAlpha = 0.25 + 0.25 * Math.sin(t * 1.3 + i);
+      ctx.fillRect(sx % w, sy, 1.3, 1.3);
+    }
+    ctx.globalAlpha = 1;
+    // soleil
+    const sunX = w * 0.16, sunY = horizon - 6;
+    let g = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, h * 0.55);
+    g.addColorStop(0, "rgba(255,210,150,.9)"); g.addColorStop(0.08, "rgba(255,170,110,.55)"); g.addColorStop(0.4, "rgba(255,120,120,.12)"); g.addColorStop(1, "rgba(255,120,120,0)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, horizon);
+    ctx.fillStyle = "#ffe1b8"; ctx.beginPath(); ctx.arc(sunX, sunY, Math.max(10, h * 0.035), Math.PI, 0); ctx.fill();
+
+    // --- Nuages : se déplacent avec le vent apparent
+    const flowFwd = sim.deck.speed * Math.cos(rad(sim.flowRelDeck)); // m/s
+    for (const c of scene.clouds) {
+      c.x += flowFwd * dt * 0.0016 * c.s;
+      if (c.x > 1.25) c.x -= 1.5; if (c.x < -0.25) c.x += 1.5;
+      drawCloud(ctx, c.x * w, c.y * horizon, c.s * Math.max(0.6, w / 1100));
+    }
+
+    // --- Mer
+    const sea = ctx.createLinearGradient(0, horizon, 0, h);
+    sea.addColorStop(0, "#2a4f78"); sea.addColorStop(0.25, "#123459"); sea.addColorStop(1, "#040f1f");
+    ctx.fillStyle = sea; ctx.fillRect(0, horizon, w, h - horizon);
+    // reflet du soleil
+    g = ctx.createRadialGradient(sunX, horizon, 0, sunX, horizon, w * 0.35);
+    g.addColorStop(0, "rgba(255,180,120,.35)"); g.addColorStop(1, "rgba(255,180,120,0)");
+    ctx.fillStyle = g; ctx.fillRect(0, horizon, w, (h - horizon) * 0.6);
+
+    scene.sea += sim.V * dt * 9;
+    const amp = 0.6 + P.windSpeed / 14;
+    for (let i = 0; i < 16; i++) {
+      const k = i / 15;
+      const y = horizon + Math.pow(k, 1.7) * (h - horizon);
+      const a = amp * (0.4 + k * 3.2);
+      const freq = 0.05 / (0.4 + k * 2.2);
+      ctx.beginPath();
+      for (let x = 0; x <= w + 8; x += 8) {
+        const yy = y + Math.sin(x * freq + scene.sea * freq * (0.6 + k) + i * 1.7) * a + Math.sin(x * freq * 2.3 + t * 1.2 + i) * a * 0.3;
+        x === 0 ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy);
+      }
+      ctx.strokeStyle = `rgba(160,210,255,${0.05 + k * 0.1})`;
+      ctx.lineWidth = 1 + k * 1.4;
+      ctx.stroke();
+    }
+
+    // --- Bateau
+    const L = Math.min(w * 0.5, 560);
+    const x0 = w * 0.08 + L / 2; // centre
+    const wl = horizon + (h - horizon) * 0.42;
+    const bob = Math.sin(t * 0.9) * (1 + P.windSpeed / 20);
+    const pitch = Math.sin(t * 0.7 + 1) * 0.008 * (1 + P.windSpeed / 25);
+    const H = L * 0.085;
+
+    // sillage
+    for (let i = 0; i < 18; i++) {
+      const p = i / 17;
+      const wx = x0 - L / 2 - p * w * 0.25 * (0.4 + sim.vKn / 16);
+      ctx.fillStyle = `rgba(230,245,255,${(1 - p) * 0.22 * (sim.vKn / 14)})`;
+      ctx.beginPath(); ctx.ellipse(wx, wl + 4 + Math.sin(t * 3 + i) * 1.5, 28 + p * 50, 3 + p * 4, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    ctx.save();
+    ctx.translate(x0, wl + bob);
+    ctx.rotate(pitch);
+    // ombre / reflet
+    ctx.fillStyle = "rgba(0,10,25,.45)";
+    ctx.beginPath(); ctx.ellipse(0, H * 0.35, L * 0.52, H * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+    // conteneurs
+    const cw = L * 0.034, ch = H * 0.36;
+    const cStart = -L / 2 + L * 0.2, cEnd = L / 2 - L * 0.15;
+    let ci = 0;
+    for (let x = cStart; x < cEnd - cw; x += cw + 1.2, ci++) {
+      const stack = containers[ci % containers.length];
+      for (let j = 0; j < stack.h; j++) {
+        ctx.fillStyle = stack.c[j];
+        ctx.fillRect(x, -H - ch * (j + 1), cw, ch - 1);
+        ctx.fillStyle = "rgba(0,0,0,.18)";
+        ctx.fillRect(x + cw * 0.5, -H - ch * (j + 1), 1, ch - 1);
+        ctx.fillStyle = "rgba(255,255,255,.12)";
+        ctx.fillRect(x, -H - ch * (j + 1), cw, 1.2);
+      }
+    }
+    // coque
+    const hull = new Path2D();
+    hull.moveTo(-L / 2, -H);
+    hull.lineTo(L / 2 - L * 0.01, -H * 1.08);
+    hull.quadraticCurveTo(L / 2 + L * 0.02, -H * 0.2, L / 2 - L * 0.05, H * 0.28);
+    hull.lineTo(-L / 2 + L * 0.05, H * 0.28);
+    hull.quadraticCurveTo(-L / 2 - L * 0.01, H * 0.2, -L / 2, -H);
+    hull.closePath();
+    g = ctx.createLinearGradient(0, -H, 0, H * 0.3);
+    g.addColorStop(0, "#22344d"); g.addColorStop(0.6, "#121f30"); g.addColorStop(0.62, "#a3312f"); g.addColorStop(1, "#6d1d1d");
+    ctx.fillStyle = g; ctx.fill(hull);
+    ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.lineWidth = 1; ctx.stroke(hull);
+    // liseré
+    ctx.fillStyle = "rgba(255,255,255,.75)";
+    ctx.fillRect(-L / 2 + 4, -H * 0.92, L * 0.98, 1.4);
+    ctx.font = `600 ${Math.max(8, H * 0.28)}px "Space Grotesk", Inter, sans-serif`;
+    ctx.fillStyle = "rgba(255,255,255,.75)";
+    ctx.fillText("KITECARGO", L / 2 - L * 0.2, -H * 0.42);
+    // passerelle
+    const bx = -L / 2 + L * 0.06, bw = L * 0.11, bh = H * 2.6;
+    g = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+    g.addColorStop(0, "#e9eef5"); g.addColorStop(1, "#b8c4d6");
+    ctx.fillStyle = g; ctx.fillRect(bx, -H - bh, bw, bh);
+    ctx.fillStyle = "#c7d2e2"; ctx.fillRect(bx - L * 0.015, -H - bh, bw + L * 0.03, H * 0.18);
+    ctx.fillStyle = "#1c3557";
+    for (let r = 0; r < 4; r++) ctx.fillRect(bx + 3, -H - bh + H * 0.32 + r * H * 0.55, bw - 6, H * 0.16);
+    ctx.fillStyle = "rgba(255,210,140,.85)";
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 6; c++) if ((r * 7 + c * 3) % 5 === 0) ctx.fillRect(bx + 5 + c * (bw - 10) / 6, -H - bh + H * 0.34 + r * H * 0.55, (bw - 10) / 6 - 2, H * 0.12);
+    // cheminée
+    const fx = bx + bw * 0.25, fw = bw * 0.5, fh = H * 0.9;
+    ctx.fillStyle = "#2b3d56"; ctx.fillRect(fx, -H - bh - fh, fw, fh);
+    ctx.fillStyle = "#ff8a3d"; ctx.fillRect(fx, -H - bh - fh * 0.62, fw, fh * 0.22);
+    ctx.fillStyle = "#0b0f15"; ctx.fillRect(fx, -H - bh - fh, fw, 3);
+    const funnel = { x: x0 + fx + fw / 2, y: wl + bob - H - bh - fh };
+    // mât du kite à l'étrave
+    const mx = L / 2 - L * 0.06, mh = H * 1.7;
+    ctx.strokeStyle = "#d9e2ef"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(mx, -H * 1.05); ctx.lineTo(mx, -H - mh); ctx.stroke();
+    ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(mx - L * 0.03, -H * 1.05); ctx.lineTo(mx, -H - mh * 0.6); ctx.stroke();
+    ctx.fillStyle = "#ff8a3d"; ctx.beginPath(); ctx.arc(mx, -H - mh, 3.5, 0, Math.PI * 2); ctx.fill();
+    const mast = { x: x0 + mx, y: wl + bob - H - mh };
+    ctx.restore();
+
+    // vague d'étrave
+    const bowX = x0 + L / 2 - L * 0.02;
+    const bw2 = 10 + sim.vKn * 2.2;
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = `rgba(235,248,255,${0.35 - i * 0.1})`;
+      ctx.beginPath();
+      ctx.ellipse(bowX - i * 10, wl + bob + 2, bw2 + i * 12 + Math.sin(t * 5 + i) * 3, 3 + sim.vKn * 0.18, 0, Math.PI, 0);
+      ctx.fill();
+    }
+    // écume le long de la coque
+    ctx.strokeStyle = "rgba(235,248,255,.35)"; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = x0 - L / 2; x < bowX; x += 6) {
+      const y = wl + bob + H * 0.05 + Math.sin(x * 0.12 + scene.sea * 0.12) * 1.5;
+      x === x0 - L / 2 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // --- Fumée : proportionnelle à la puissance du moteur
+    const MW = sim.Pbrake / 1000;
+    scene.smokeAcc += dt * MW * 5;
+    while (scene.smokeAcc > 1) {
+      scene.smokeAcc -= 1;
+      scene.smoke.push({ x: funnel.x + (Math.random() - .5) * 4, y: funnel.y, vx: 0, vy: -14 - Math.random() * 10, r: 3 + Math.random() * 2, life: 0, max: 3.5 + Math.random() * 1.5, dark: 0.35 + Math.min(MW / 12, 1) * 0.4 });
+    }
+    const smokeWind = flowFwd * 7;
+    for (let i = scene.smoke.length - 1; i >= 0; i--) {
+      const s = scene.smoke[i];
+      s.life += dt;
+      if (s.life > s.max) { scene.smoke.splice(i, 1); continue; }
+      s.vx = lerp(s.vx, smokeWind, dt * 0.8);
+      s.x += s.vx * dt; s.y += s.vy * dt; s.vy *= 0.995; s.r += dt * 9;
+      const a = (1 - s.life / s.max) * s.dark * 0.4;
+      ctx.fillStyle = `rgba(70,72,84,${a})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // --- Kite
+    const flying = sim.state === "flying";
+    scene.deploy = clamp(scene.deploy + (flying ? 1 : -1) * dt * 0.6, 0, 1);
+    const dep = smooth(scene.deploy);
+    const period = clamp(13 - sim.vaKkn * 0.22, 3.6, 11);
+    scene.kt += dt * Math.PI * 2 / period;
+    const kt = scene.kt;
+    const Lt = Math.max(40, Math.min((mast.y - 34) / 0.7, (w - mast.x - 40) / 0.82));
+    const az = sim.pullAz + 30 * Math.sin(kt);
+    const el = CFG.ELEV + 9 * Math.sin(2 * kt);
+    const f = Math.cos(rad(el)) * Math.cos(rad(az));
+    const sdep = Math.cos(rad(el)) * Math.sin(rad(az));
+    const u = Math.sin(rad(el));
+    const Ld = Lt * dep;
+    const kx = mast.x + Ld * (f * 0.62 + sdep * 0.5) + (1 - dep) * 0;
+    const ky = mast.y - Ld * (u * 1.0 + sdep * 0.1) - (1 - dep) * 6;
+
+    // traînée en 8
+    // un point tous les 1/140 de tour : la traînée couvre tout le 8, quelle que soit sa vitesse
+    if (dep > 0.85) {
+      if (scene.trailKt === undefined || kt - scene.trailKt > Math.PI * 2 / 140) {
+        scene.trail.push({ x: kx - mast.x, y: ky - mast.y });
+        scene.trailKt = kt;
+      }
+    } else scene.trail.length = 0;
+    if (scene.trail.length > 130) scene.trail.shift();
+    if (scene.trail.length > 2) {
+      for (let i = 1; i < scene.trail.length; i++) {
+        const a = i / scene.trail.length;
+        ctx.strokeStyle = `rgba(255,160,90,${a * 0.55})`;
+        ctx.lineWidth = 1 + a * 2.2;
+        ctx.beginPath();
+        ctx.moveTo(mast.x + scene.trail[i - 1].x, mast.y + scene.trail[i - 1].y);
+        ctx.lineTo(mast.x + scene.trail[i].x, mast.y + scene.trail[i].y);
+        ctx.stroke();
+      }
+    }
+
+    // câble
+    if (dep > 0.02) {
+      const sag = 18 * (1 - Math.min(sim.T / 150, 1)) + 4;
+      ctx.strokeStyle = "rgba(240,240,255,.75)"; ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(mast.x, mast.y);
+      ctx.quadraticCurveTo((mast.x + kx) / 2, (mast.y + ky) / 2 + sag, kx, ky);
+      ctx.stroke();
+    }
+
+    // aile
+    const prev = scene.lastKite || { x: kx - 1, y: ky };
+    let ang = Math.atan2(ky - prev.y, kx - prev.x);
+    if (dep < 0.3) ang = -Math.PI / 2;
+    scene.angle = scene.angle === undefined ? ang : scene.angle + norm180(deg(ang - scene.angle)) * Math.PI / 180 * Math.min(1, dt * 10);
+    scene.lastKite = { x: kx, y: ky };
+    const depth = 1 - sdep * 0.35;
+    const span = Math.max(16, Lt * 0.2) * depth * (0.45 + 0.55 * dep);
+    ctx.save();
+    ctx.translate(kx, ky);
+    ctx.rotate(scene.angle);
+    const kg = ctx.createLinearGradient(0, -span / 2, 0, span / 2);
+    kg.addColorStop(0, "#ffb347"); kg.addColorStop(0.5, "#ff5e62"); kg.addColorStop(1, "#c04cfd");
+    // halo
+    ctx.shadowColor = "rgba(255,110,90,.8)"; ctx.shadowBlur = 16 * dep;
+    ctx.fillStyle = kg;
+    ctx.beginPath();
+    ctx.moveTo(-span * 0.1, -span / 2);
+    ctx.quadraticCurveTo(span * 0.55, 0, -span * 0.1, span / 2);
+    ctx.quadraticCurveTo(span * 0.16, 0, -span * 0.1, -span / 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // caissons
+    ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.lineWidth = 0.8;
+    for (let i = 1; i < 6; i++) {
+      const yy = -span / 2 + span * i / 6, k = 1 - Math.pow(2 * i / 6 - 1, 2);
+      ctx.beginPath(); ctx.moveTo(-span * 0.1 + k * span * 0.13, yy); ctx.lineTo(-span * 0.1 + k * span * 0.27, yy); ctx.stroke();
+    }
+    // suspentes
+    ctx.strokeStyle = "rgba(255,255,255,.35)";
+    ctx.beginPath();
+    ctx.moveTo(-span * 0.1, -span / 2); ctx.lineTo(-span * 0.55, 0); ctx.lineTo(-span * 0.1, span / 2);
+    ctx.moveTo(span * 0.1, 0); ctx.lineTo(-span * 0.55, 0);
+    ctx.stroke();
+    ctx.restore();
+
+    // embruns si vent fort
+    if (P.windSpeed > 18 && Math.random() < dt * P.windSpeed * 0.3) {
+      scene.spray.push({ x: bowX - Math.random() * 20, y: wl + bob, vx: (Math.random() - 0.3) * 40, vy: -40 - Math.random() * 40, life: 0 });
+    }
+    for (let i = scene.spray.length - 1; i >= 0; i--) {
+      const s = scene.spray[i];
+      s.life += dt; s.vy += 140 * dt; s.x += s.vx * dt; s.y += s.vy * dt;
+      if (s.life > 0.9) { scene.spray.splice(i, 1); continue; }
+      ctx.fillStyle = `rgba(240,250,255,${0.7 * (1 - s.life / 0.9)})`;
+      ctx.fillRect(s.x, s.y, 2, 2);
+    }
+
+    // vignette
+    g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.75);
+    g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,5,15,.45)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+
+    // traction instantanée (elle pulse avec le 8)
+    scene.force = flying ? sim.T * (0.85 + 0.3 * Math.pow(Math.cos(kt), 2)) * dep : 0;
+  }
+
+  // ================================================================
+  //  BOUSSOLE (vue du dessus)
+  // ================================================================
+  const CP = setupCanvas($("compass"));
+  const windParticles = Array.from({ length: 70 }, () => ({ x: Math.random() * 2 - 1, y: Math.random() * 2 - 1, life: Math.random() }));
+  const smoothC = { heading: P.heading, windDir: P.windDir, app: 0, pull: 0, force: 0 };
+
+  function arrow(ctx, x1, y1, x2, y2, color, width, dash) {
+    const a = Math.atan2(y2 - y1, x2 - x1), hl = 8 + width * 1.6;
+    ctx.save();
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width; ctx.lineCap = "round";
+    ctx.shadowColor = color; ctx.shadowBlur = 10;
+    if (dash) ctx.setLineDash(dash);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a) * hl * 0.6, y2 - Math.sin(a) * hl * 0.6); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - hl * Math.cos(a - 0.42), y2 - hl * Math.sin(a - 0.42));
+    ctx.lineTo(x2 - hl * Math.cos(a + 0.42), y2 - hl * Math.sin(a + 0.42));
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  const bdir = a => [Math.sin(rad(a)), -Math.cos(rad(a))];
+  const angLerp = (a, b, k) => a + norm180(b - a) * k;
+
+  function drawCompass(dt) {
+    const { ctx, w, h } = CP;
+    if (!S) return;
+    const sim = S.sim;
+    const k = Math.min(1, dt * 8);
+    smoothC.heading = angLerp(smoothC.heading, P.heading, k);
+    smoothC.windDir = angLerp(smoothC.windDir, P.windDir, k);
+    smoothC.app = angLerp(smoothC.app, sim.deck.fromBearing, k);
+    smoothC.pull = angLerp(smoothC.pull, P.heading + sim.pullAz, k);
+    smoothC.force = lerp(smoothC.force, sim.fwd, k);
+
+    ctx.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.44;
+    let g = ctx.createRadialGradient(cx, cy, R * 0.1, cx, cy, R * 1.05);
+    g.addColorStop(0, "#14304f"); g.addColorStop(0.7, "#0b1d33"); g.addColorStop(1, "#071322");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "rgba(120,180,255,.25)"; ctx.lineWidth = 1.2; ctx.stroke();
+    for (const rr of [0.33, 0.66]) { ctx.strokeStyle = "rgba(120,180,255,.08)"; ctx.beginPath(); ctx.arc(cx, cy, R * rr, 0, Math.PI * 2); ctx.stroke(); }
+
+    // particules de vent
+    const [wdx, wdy] = bdir(P.windDir + 180);
+    const wsp = P.windSpeed / 30;
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R - 2, 0, Math.PI * 2); ctx.clip();
+    for (const p of windParticles) {
+      p.x += wdx * dt * (0.15 + wsp * 0.45); p.y += wdy * dt * (0.15 + wsp * 0.45); p.life += dt * 0.4;
+      if (p.x * p.x + p.y * p.y > 1.05 || p.life > 1) { p.x = Math.random() * 2 - 1 - wdx * 0.6; p.y = Math.random() * 2 - 1 - wdy * 0.6; p.life = 0; }
+      const a = Math.sin(p.life * Math.PI) * 0.5 * Math.min(1, wsp + 0.2);
+      ctx.strokeStyle = `rgba(110,180,255,${a})`; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(cx + p.x * R, cy + p.y * R); ctx.lineTo(cx + (p.x - wdx * 0.06) * R, cy + (p.y - wdy * 0.06) * R); ctx.stroke();
+    }
+    ctx.restore();
+
+    // graduations
+    for (let a = 0; a < 360; a += 10) {
+      const [dx, dy] = bdir(a), major = a % 90 === 0, mid = a % 30 === 0;
+      const r1 = R * (major ? 0.86 : mid ? 0.9 : 0.94);
+      ctx.strokeStyle = `rgba(255,255,255,${major ? .7 : mid ? .35 : .15})`; ctx.lineWidth = major ? 2 : 1;
+      ctx.beginPath(); ctx.moveTo(cx + dx * r1, cy + dy * r1); ctx.lineTo(cx + dx * R * 0.98, cy + dy * R * 0.98); ctx.stroke();
+    }
+    ctx.font = `700 ${Math.max(11, R * 0.085)}px "Space Grotesk", Inter, sans-serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    [["N", 0], ["E", 90], ["S", 180], ["O", 270]].forEach(([l, a]) => {
+      const [dx, dy] = bdir(a);
+      ctx.fillStyle = l === "N" ? "#ff8a3d" : "rgba(255,255,255,.75)";
+      ctx.fillText(l, cx + dx * R * 0.76, cy + dy * R * 0.76);
+    });
+
+    // vent réel : flèche qui arrive de la direction du vent
+    {
+      const [dx, dy] = bdir(smoothC.windDir);
+      const len = 0.25 + Math.min(P.windSpeed / 45, 1) * 0.35;
+      arrow(ctx, cx + dx * R * 0.97, cy + dy * R * 0.97, cx + dx * R * (0.97 - len), cy + dy * R * (0.97 - len), "#4aa8ff", 3.5);
+    }
+    // vent apparent (au pont)
+    {
+      const [dx, dy] = bdir(smoothC.app);
+      const len = 0.2 + Math.min(sim.deck.speed / KN / 50, 1) * 0.4;
+      arrow(ctx, cx + dx * R * (0.25 + len), cy + dy * R * (0.25 + len), cx + dx * R * 0.25, cy + dy * R * 0.25, "#2ee6c5", 2.4, [5, 4]);
+    }
+    // vitesse du bateau
+    {
+      const [dx, dy] = bdir(smoothC.heading);
+      const len = 0.2 + (P.speed - 8) / 8 * 0.25;
+      arrow(ctx, cx + dx * R * 0.18, cy + dy * R * 0.18, cx + dx * R * (0.18 + len), cy + dy * R * (0.18 + len), "#3ddc84", 3);
+    }
+    // traction du kite
+    if (sim.state === "flying" && smoothC.force > 1) {
+      const [dx, dy] = bdir(smoothC.pull);
+      const len = 0.12 + Math.min(sim.T / CFG.TMAX, 1) * 0.42;
+      arrow(ctx, cx + dx * R * 0.12, cy + dy * R * 0.12, cx + dx * R * (0.12 + len), cy + dy * R * (0.12 + len), "#ff8a3d", 3.2);
+      // petit kite au bout
+      const kx = cx + dx * R * (0.12 + len + 0.07), ky = cy + dy * R * (0.12 + len + 0.07);
+      ctx.fillStyle = "#ff5e62"; ctx.beginPath(); ctx.arc(kx, ky, 4 + Math.sin(scene.kt) * 1.2, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // bateau
+    ctx.save();
+    ctx.translate(cx, cy); ctx.rotate(rad(smoothC.heading));
+    const s = R * 0.3;
+    ctx.fillStyle = "#e9eef5"; ctx.strokeStyle = "rgba(0,0,0,.4)"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -s * 0.62);
+    ctx.quadraticCurveTo(s * 0.13, -s * 0.38, s * 0.13, -s * 0.1);
+    ctx.lineTo(s * 0.13, s * 0.42); ctx.lineTo(-s * 0.13, s * 0.42); ctx.lineTo(-s * 0.13, -s * 0.1);
+    ctx.quadraticCurveTo(-s * 0.13, -s * 0.38, 0, -s * 0.62);
+    ctx.fill(); ctx.stroke();
+    for (let i = 0; i < 6; i++) { ctx.fillStyle = CONT_COLORS[i % CONT_COLORS.length]; ctx.fillRect(-s * 0.09, -s * 0.28 + i * s * 0.09, s * 0.18, s * 0.07); }
+    ctx.fillStyle = "#1c3557"; ctx.fillRect(-s * 0.11, s * 0.28, s * 0.22, s * 0.08);
+    ctx.restore();
+  }
+
+  // ================================================================
+  //  JAUGES
+  // ================================================================
+  const GA = [setupCanvas($("g1")), setupCanvas($("g2")), setupCanvas($("g3"))];
+  const GSTOPS = [
+    [[0, "#ff4d6d"], [0.3, "#ffc145"], [0.6, "#3ddc84"], [1, "#2ee6c5"]],
+    [[0, "#ff4d6d"], [0.3, "#ffc145"], [0.6, "#3ddc84"], [1, "#2ee6c5"]],
+    [[0, "#4aa8ff"], [0.5, "#a46bff"], [1, "#ff8a3d"]]
+  ];
+  const gaugeVal = [0, 0, 0];
+
+  function drawGauge(G, frac, stops, labels) {
+    const { ctx, w, h } = G;
+    ctx.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h * 0.86, R = Math.min(w / 2 - 10, h * 0.8);
+    const th = Math.max(8, R * 0.13);
+    // piste
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "rgba(255,255,255,.07)"; ctx.lineWidth = th;
+    ctx.beginPath(); ctx.arc(cx, cy, R, Math.PI, 2 * Math.PI); ctx.stroke();
+    // zones colorées (fond)
+    const N = 60;
+    for (let i = 0; i < N; i++) {
+      const a0 = Math.PI + Math.PI * i / N, a1 = Math.PI + Math.PI * (i + 1) / N;
+      ctx.strokeStyle = colorAt(stops, i / N); ctx.globalAlpha = 0.16; ctx.lineCap = "butt";
+      ctx.beginPath(); ctx.arc(cx, cy, R, a0, a1 + 0.01); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    // valeur
+    const n = Math.round(N * clamp(frac, 0, 1));
+    ctx.save(); ctx.shadowBlur = 14;
+    for (let i = 0; i < n; i++) {
+      const a0 = Math.PI + Math.PI * i / N, a1 = Math.PI + Math.PI * (i + 1) / N;
+      const c = colorAt(stops, i / N);
+      ctx.strokeStyle = c; ctx.shadowColor = c;
+      ctx.beginPath(); ctx.arc(cx, cy, R, a0, a1 + 0.012); ctx.stroke();
+    }
+    ctx.restore();
+    // graduations
+    ctx.fillStyle = "rgba(255,255,255,.5)";
+    ctx.font = `500 ${Math.max(9, R * 0.1)}px Inter, sans-serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (let i = 0; i <= 10; i++) {
+      const a = Math.PI + Math.PI * i / 10;
+      const r1 = R - th / 2 - 4, r2 = r1 - (i % 5 === 0 ? 8 : 4);
+      ctx.strokeStyle = `rgba(255,255,255,${i % 5 === 0 ? .5 : .22})`; ctx.lineWidth = 1.2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2); ctx.stroke();
+      if (i % 5 === 0) ctx.fillText(labels[i / 5], cx + Math.cos(a) * (r2 - 11), cy + Math.sin(a) * (r2 - 11) + 2);
+    }
+    // aiguille
+    const a = Math.PI + Math.PI * clamp(frac, 0, 1);
+    const c = colorAt(stops, frac);
+    ctx.save();
+    ctx.shadowColor = c; ctx.shadowBlur = 12;
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.6; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(cx - Math.cos(a) * 8, cy - Math.sin(a) * 8); ctx.lineTo(cx + Math.cos(a) * (R - th * 0.9), cy + Math.sin(a) * (R - th * 0.9)); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = "#0a1320"; ctx.strokeStyle = c; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+
+  function drawGauges(dt) {
+    if (!S) return;
+    const targets = [
+      clamp(S.savePct / 70, 0, 1),
+      clamp(S.dec.total / 800, 0, 1),
+      clamp(S.sim.fwd / CFG.TMAX, 0, 1)
+    ];
+    const labels = [["0", "35", "70 %"], ["0", "400", "800 t"], ["0", "125", "250 kN"]];
+    for (let i = 0; i < 3; i++) {
+      // l'aiguille de la jauge du kite suit les pulsations du vol en 8
+      let tgt = targets[i];
+      if (i === 2 && S.sim.state === "flying" && S.sim.T > 0) tgt *= scene.force / S.sim.T;
+      gaugeVal[i] = lerp(gaugeVal[i], tgt, Math.min(1, dt * 5));
+      drawGauge(GA[i], gaugeVal[i], GSTOPS[i], labels[i]);
+    }
+  }
+
+  // ================================================================
+  //  COURBE CO2 = f(vitesse)
+  // ================================================================
+  const CV = setupCanvas($("curve"));
+  function drawCurve() {
+    const { ctx, w, h } = CV;
+    if (!S) return;
+    ctx.clearRect(0, 0, w, h);
+    const pl = 52, pr = 16, pt = 16, pb = 34;
+    const data = S.curve;
+    const ymax = Math.max(...data.map(d => d.no), S.dec.E0) * 1.1;
+    const X = v => pl + (v - 8) / 8 * (w - pl - pr);
+    const Y = e => pt + (1 - e / ymax) * (h - pt - pb);
+
+    // grille
+    ctx.font = "500 10.5px Inter, sans-serif"; ctx.fillStyle = "rgba(255,255,255,.45)";
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    const stepY = ymax > 1500 ? 500 : ymax > 600 ? 200 : 100;
+    for (let e = 0; e <= ymax; e += stepY) {
+      ctx.strokeStyle = "rgba(255,255,255,.06)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pl, Y(e)); ctx.lineTo(w - pr, Y(e)); ctx.stroke();
+      ctx.fillText(fmt0(e), pl - 8, Y(e));
+    }
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    for (let v = 8; v <= 16; v += 2) ctx.fillText(v, X(v), h - pb + 8);
+    ctx.fillText("vitesse (nœuds)", (pl + w - pr) / 2 + 60, h - pb + 8);
+    ctx.save(); ctx.translate(12, (pt + h - pb) / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = "middle";
+    ctx.fillText("t CO₂ / trajet", 0, 0); ctx.restore();
+
+    // zone entre les courbes = apport du kite
+    if (P.kite) {
+      ctx.beginPath();
+      data.forEach((d, i) => i ? ctx.lineTo(X(d.v), Y(d.no)) : ctx.moveTo(X(d.v), Y(d.no)));
+      for (let i = data.length - 1; i >= 0; i--) ctx.lineTo(X(data[i].v), Y(data[i].kite));
+      ctx.closePath();
+      ctx.fillStyle = "rgba(164,107,255,.22)"; ctx.fill();
+    }
+    // référence
+    ctx.setLineDash([4, 5]); ctx.strokeStyle = "rgba(255,255,255,.35)";
+    ctx.beginPath(); ctx.moveTo(pl, Y(S.dec.E0)); ctx.lineTo(w - pr, Y(S.dec.E0)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+    ctx.fillText("référence (14 nd, sans kite)", pl + 4, Y(S.dec.E0) - 3);
+
+    // courbes
+    const line = (key, color, wdt) => {
+      ctx.beginPath();
+      data.forEach((d, i) => i ? ctx.lineTo(X(d.v), Y(d[key])) : ctx.moveTo(X(d.v), Y(d[key])));
+      ctx.strokeStyle = color; ctx.lineWidth = wdt; ctx.shadowColor = color; ctx.shadowBlur = 8; ctx.stroke(); ctx.shadowBlur = 0;
+    };
+    line("no", "#ff6b81", 2.2);
+    if (P.kite) line("kite", "#2ee6c5", 2.6);
+
+    // points
+    const ref = { x: X(CFG.VREF), y: Y(S.dec.E0) };
+    const cur = { x: X(P.speed), y: Y(S.dec.E3) };
+    ctx.setLineDash([3, 4]); ctx.strokeStyle = "rgba(46,230,197,.45)";
+    ctx.beginPath(); ctx.moveTo(cur.x, pt); ctx.lineTo(cur.x, h - pb); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "#0a1320"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(ref.x, ref.y, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#2ee6c5"; ctx.shadowColor = "#2ee6c5"; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(cur.x, cur.y, 6.5, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+
+    // légende
+    ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.font = "600 11px Inter, sans-serif";
+    const items = [["sans kite", "#ff6b81"]];
+    if (P.kite) items.push(["avec kite", "#2ee6c5"], ["apport du kite", "#b99bff"]);
+    let lx = pl + 8;
+    const ly = h - pb - 12;
+    for (const [txt, col] of items) {
+      ctx.fillStyle = col; ctx.fillRect(lx, ly - 1.5, 14, 3);
+      ctx.fillText(txt, lx + 19, ly);
+      lx += 30 + ctx.measureText(txt).width;
+    }
+  }
+
+  // ================================================================
+  //  HUD + BOUCLE
+  // ================================================================
+  let hudT = 0;
+  function updateHud(dt) {
+    hudT += dt;
+    if (hudT < 0.12 || !S) return;
+    hudT = 0;
+    const sim = S.sim;
+    $("hSpeed").innerHTML = `${fmt1(P.speed)}<i>nd</i>`;
+    $("hWind").innerHTML = `${fmt0(P.windSpeed)}<i>nd · du ${cardinal(P.windDir)}</i>`;
+    const side = sim.awaK >= 0 ? "tribord" : "bâbord";
+    $("hApp").innerHTML = `${fmt0(sim.vaKkn)}<i>nd · ${fmt0(Math.abs(sim.awaK))}° ${side}</i>`;
+    $("hForce").innerHTML = `${fmt0(scene.force)}<i>kN</i>`;
+  }
+
+  let lastT = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+    drawScene(dt);
+    drawCompass(dt);
+    drawGauges(dt);
+    if (curveDirty) { drawCurve(); curveDirty = false; }
+    updateHud(dt);
+    requestAnimationFrame(frame);
+  }
+
+  recompute();
+  showMission(0);
+  requestAnimationFrame(frame);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { curveDirty = true; });
+})();
+</script>

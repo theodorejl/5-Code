@@ -1,58 +1,35 @@
-import random
+from pathlib import Path
 
 import streamlit as st
 
-st.set_page_config(page_title="Devine le nombre", page_icon="🎯")
+st.set_page_config(page_title="KiteCargo", page_icon="🪁", layout="wide")
 
-MIN, MAX = 1, 100
+st.markdown(
+    """
+    <style>
+      .stApp { background: #050d18; }
+      .block-container { padding-top: 1rem; padding-bottom: 1rem; max-width: 1440px; }
+      header[data-testid="stHeader"] { background: transparent; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
+# Tout le simulateur (animation, potards, jauges) tourne en JavaScript dans le navigateur :
+# l'animation reste fluide et ne redémarre pas à chaque réglage.
+st.iframe(Path(__file__).parent / "kite_sim.html", height="content")
 
-def nouvelle_partie():
-    st.session_state.secret = random.randint(MIN, MAX)
-    st.session_state.essais = []
-    st.session_state.gagne = False
-
-
-if "secret" not in st.session_state:
-    nouvelle_partie()
-if "meilleur" not in st.session_state:
-    st.session_state.meilleur = None
-
-st.title("🎯 Devine le nombre")
-st.write(f"J'ai choisi un nombre entre **{MIN}** et **{MAX}**. À toi de le trouver !")
-
-with st.form("essai", clear_on_submit=True):
-    proposition = st.number_input("Ta proposition", min_value=MIN, max_value=MAX, step=1, value=None)
-    valider = st.form_submit_button("Valider", disabled=st.session_state.gagne)
-
-if valider and proposition is not None and not st.session_state.gagne:
-    proposition = int(proposition)
-    st.session_state.essais.append(proposition)
-    if proposition == st.session_state.secret:
-        st.session_state.gagne = True
-        nb = len(st.session_state.essais)
-        if st.session_state.meilleur is None or nb < st.session_state.meilleur:
-            st.session_state.meilleur = nb
-
-essais = st.session_state.essais
-
-if st.session_state.gagne:
-    st.balloons()
-    st.success(f"Bravo ! C'était bien {st.session_state.secret}, trouvé en {len(essais)} essai(s).")
-elif essais:
-    dernier = essais[-1]
-    if dernier < st.session_state.secret:
-        st.warning(f"{dernier} : c'est **plus** ⬆️")
-    else:
-        st.warning(f"{dernier} : c'est **moins** ⬇️")
-
-col1, col2 = st.columns(2)
-col1.metric("Essais", len(essais))
-col2.metric("Meilleur score", st.session_state.meilleur or "—")
-
-if essais:
-    st.caption("Historique : " + ", ".join(str(e) for e in essais))
-
-if st.button("🔄 Nouvelle partie"):
-    nouvelle_partie()
-    st.rerun()
+with st.expander("📐 Hypothèses du modèle"):
+    st.markdown(
+        """
+- **Navire** : porte-conteneurs, 8 MW de puissance moteur à 14 nœuds (vitesse de référence).
+  La résistance de la coque varie comme **V²**, donc la puissance comme **V³** et le carburant par trajet comme **V²**.
+- **Trajet** : Rotterdam → New York, 3 400 milles nautiques. Conso spécifique 180 g/kWh, 3,114 t de CO₂ par tonne de fioul.
+- **Vent** : le vent apparent (vent réel − vitesse du bateau) crée aussi une traînée sur les superstructures (pénalité par vent de face).
+- **Kite** : aile de 400 m² volant en 8 vers 200–300 m (vent environ 30 % plus fort qu'au pont). Traction limitée à 250 kN,
+  inutilisable si le vent apparent vient à moins de 45° de l'étrave, s'il est trop faible (< 8 nœuds) ou en tempête (> 38 nœuds).
+  Il fournit au plus 60 % de la poussée.
+- **Répartition du gain** : moyenne des deux ordres possibles (ralentir puis ajouter le kite, et l'inverse),
+  pour ne favoriser aucun des deux leviers.
+        """
+    )
