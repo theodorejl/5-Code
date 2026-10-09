@@ -7,7 +7,7 @@ st.set_page_config(page_title="KiteCargo", page_icon="🪁", layout="wide")
 st.markdown(
     """
     <style>
-      .stApp { background: #050d18; }
+      .stApp { background: #f3f5f8; }
       .block-container { padding-top: 1rem; padding-bottom: 1rem; max-width: 1440px; }
       header[data-testid="stHeader"] { background: transparent; }
     </style>

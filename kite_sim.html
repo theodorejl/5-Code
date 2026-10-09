@@ -1,105 +1,119 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #050d18;
-    --panel: rgba(12, 26, 44, .78);
-    --panel2: rgba(20, 40, 66, .55);
-    --line: rgba(120, 180, 255, .13);
-    --text: #e8f1ff;
-    --muted: #8ea7c7;
-    --teal: #2ee6c5;
-    --violet: #a46bff;
-    --orange: #ff8a3d;
-    --blue: #4aa8ff;
-    --red: #ff4d6d;
-    --amber: #ffc145;
-    --green: #3ddc84;
+    color-scheme: light;
+    --bg: #f3f5f8;
+    --panel: #ffffff;
+    --panel2: #f6f8fb;
+    --line: #dde3ea;
+    --line2: #c6cfda;
+    --text: #0f1b2d;
+    --muted: #5b6b80;
+    --accent: #1257d6;
+    --speed: #0b8f80;
+    --kite: #6741d9;
+    --teal: #0c8599;
+    --violet: #6741d9;
+    --orange: #e8590c;
+    --blue: #1c7ed6;
+    --red: #e03131;
+    --amber: #b35c00;
+    --green: #2f9e44;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; color: var(--text); font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  /* Pas de défilement interne : Streamlit ajuste la hauteur de l'iframe au contenu.
+     (Sinon une barre de défilement blanche apparaît à droite quand la hauteur change.) */
+  html, body { margin: 0; overflow: hidden; color: var(--text); font-family: "IBM Plex Sans", Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
   body {
-    background:
-      radial-gradient(1100px 600px at 5% -10%, rgba(46, 230, 197, .10), transparent 60%),
-      radial-gradient(900px 500px at 100% 0%, rgba(164, 107, 255, .13), transparent 60%),
-      var(--bg);
-    min-height: 100vh;
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(rgba(18, 87, 214, .045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(18, 87, 214, .045) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
-  .app { max-width: 1400px; margin: 0 auto; padding: 18px 16px 28px; display: flex; flex-direction: column; gap: 16px; }
-  .display { font-family: "Space Grotesk", Inter, system-ui, sans-serif; }
+  .app { max-width: 1400px; margin: 0 auto; padding: 18px 16px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .display { font-family: "IBM Plex Sans", Inter, system-ui, sans-serif; }
   .panel {
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 18px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .04);
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 6px 18px rgba(16, 24, 40, .04);
   }
-  .panel-title { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin: 0 0 10px; }
+  .panel-title { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0 0 10px; }
+  .panel-title b { color: var(--accent); font-weight: 600; margin-right: 6px; }
 
   /* ---------- Header ---------- */
-  header { display: grid; grid-template-columns: 1fr minmax(300px, 520px); gap: 16px; align-items: stretch; }
-  .brand { display: flex; gap: 14px; align-items: center; padding: 6px 4px; }
-  .logo { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center;
-    background: linear-gradient(135deg, var(--orange), #ff3d8b 60%, var(--violet)); box-shadow: 0 8px 30px rgba(255, 90, 120, .35); flex: none; }
-  .brand h1 { margin: 0; font-size: clamp(24px, 3.4vw, 36px); letter-spacing: -.02em; line-height: 1.05; }
-  .brand h1 span { background: linear-gradient(90deg, var(--teal), var(--blue) 50%, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .brand p { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; }
+  header { display: grid; grid-template-columns: 1fr minmax(300px, 520px); gap: 14px; align-items: stretch; }
+  .brand { display: flex; gap: 14px; align-items: center; padding: 4px 2px; }
+  .logo { width: 50px; height: 50px; border-radius: 10px; display: grid; place-items: center; background: var(--accent); flex: none; box-shadow: 0 4px 14px rgba(18, 87, 214, .25); }
+  .brand h1 { margin: 0; font-size: clamp(24px, 3.2vw, 32px); letter-spacing: -.01em; line-height: 1.05; font-weight: 700; }
+  .brand h1 span { color: var(--accent); }
+  .brand p { margin: 4px 0 8px; color: var(--muted); font-size: 13.5px; }
+  .specs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .spec { font-family: var(--mono); font-size: 11px; color: #33415c; background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; }
+  .spec b { color: var(--text); font-weight: 600; }
 
-  .mission { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden; transition: border-color .4s, box-shadow .4s; }
-  .mission.done { border-color: rgba(61, 220, 132, .55); box-shadow: 0 0 0 1px rgba(61, 220, 132, .25), 0 10px 40px rgba(61, 220, 132, .15); }
+  .mission { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; border-left: 3px solid var(--accent); transition: border-color .3s, background .3s; }
+  .mission.done { border-color: var(--green); border-left-color: var(--green); background: #f3fbf5; }
   .mission-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .mission h2 { margin: 0; font-size: 15px; }
-  .mission p { margin: 0; color: #c4d4ea; font-size: 13px; line-height: 1.45; }
-  .pill { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255, 193, 69, .14); color: var(--amber); white-space: nowrap; }
-  .mission.done .pill { background: rgba(61, 220, 132, .16); color: var(--green); }
+  .mission h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  .mission p { margin: 0; color: #33415c; font-size: 13px; line-height: 1.45; min-height: 2.9em; }
+  .pill { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px; background: #fff4e0; color: var(--amber); white-space: nowrap; border: 1px solid #ffd8a8; }
+  .mission.done .pill { background: #e6f6ea; color: var(--green); border-color: #b2e2bd; }
   .mission-nav { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
   .dots { display: flex; gap: 6px; }
-  .dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, .15); border: 1px solid rgba(255, 255, 255, .2); }
-  .dot.active { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #e3e8ee; border: 1px solid var(--line2); }
+  .dot.active { outline: 2px solid var(--accent); outline-offset: 2px; }
   .dot.won { background: var(--green); border-color: var(--green); }
 
-  button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 7px 12px; cursor: pointer; font-size: 12.5px; transition: background .2s, border-color .2s, transform .1s; }
-  button:hover { background: rgba(74, 168, 255, .16); border-color: rgba(74, 168, 255, .45); }
+  button { font: inherit; color: var(--text); background: #fff; border: 1px solid var(--line2); border-radius: 7px; padding: 7px 12px; cursor: pointer; font-size: 12.5px; font-weight: 500; transition: background .15s, border-color .15s, color .15s; }
+  button:hover { background: #eef3fc; border-color: var(--accent); color: var(--accent); }
   button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   /* ---------- Grids ---------- */
-  .row-top { display: grid; grid-template-columns: minmax(0, 2.15fr) minmax(0, 1fr); gap: 16px; }
-  .row-bottom { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px; }
+  .row-top { display: grid; grid-template-columns: minmax(0, 2.15fr) minmax(0, 1fr); gap: 14px; }
+  .row-bottom { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 14px; }
 
   /* ---------- Scene ---------- */
   .scene { position: relative; overflow: hidden; min-height: 400px; }
-  .scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 18px; }
-  .hud { position: absolute; left: 14px; top: 14px; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 28px); pointer-events: none; }
-  .chip { background: rgba(5, 13, 24, .62); border: 1px solid rgba(255, 255, 255, .1); border-radius: 12px; padding: 7px 11px; backdrop-filter: blur(6px); }
-  .chip small { display: block; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-  .chip b { font-family: "Space Grotesk", Inter, sans-serif; font-size: 17px; font-weight: 600; }
-  .chip b i { font-style: normal; font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 2px; }
-  .kite-state { position: absolute; left: 14px; bottom: 14px; pointer-events: none; display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
-  .kite-state .led { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
-  .kite-state.off .led { background: var(--red); box-shadow: 0 0 10px var(--red); }
+  .scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 10px; }
+  .hud { position: absolute; left: 12px; top: 12px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 24px); pointer-events: none; }
+  .chip { background: rgba(255, 255, 255, .9); border: 1px solid var(--line); border-radius: 7px; padding: 6px 10px; min-width: 92px; box-shadow: 0 1px 3px rgba(16, 24, 40, .06); }
+  .chip small { display: block; font-family: var(--mono); font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .chip b { font-family: var(--mono); font-size: 16px; font-weight: 600; }
+  .chip b i { font-style: normal; font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 3px; }
+  .kite-state { position: absolute; left: 12px; bottom: 12px; pointer-events: none; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500;
+    background: rgba(255, 255, 255, .9); border: 1px solid var(--line); border-radius: 7px; padding: 6px 10px; }
+  .kite-state .led { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(47, 158, 68, .18); }
+  .kite-state.off .led { background: var(--red); box-shadow: 0 0 0 3px rgba(224, 49, 49, .18); }
 
   /* ---------- Compass ---------- */
   .compass { padding: 14px; display: flex; flex-direction: column; }
   .compass-cv { width: 100%; aspect-ratio: 1 / 1; max-width: 100%; display: block; }
-  .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 12px; color: #c4d4ea; margin-top: 8px; }
+  .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 12px; color: #33415c; margin-top: 8px; }
   .legend span { display: flex; align-items: center; gap: 7px; }
-  .legend i { width: 18px; height: 3px; border-radius: 3px; display: inline-block; flex: none; }
+  .legend i { width: 18px; height: 3px; border-radius: 2px; display: inline-block; flex: none; }
 
   /* ---------- Controls ---------- */
-  .controls { padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 18px; align-items: center; }
+  .controls { padding: 14px 16px 16px; display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 18px; align-items: center; }
+  .controls > .panel-title { grid-column: 1 / -1; margin: 0; }
   .knobs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
   .knob { display: flex; flex-direction: column; align-items: center; gap: 2px; user-select: none; -webkit-user-select: none; }
-  .knob svg { width: 100%; max-width: 132px; aspect-ratio: 1 / 1; cursor: grab; touch-action: none; outline: none; border-radius: 50%; }
-  .knob svg:focus-visible { box-shadow: 0 0 0 3px rgba(74, 168, 255, .55); }
+  .knob svg { width: 100%; max-width: 132px; aspect-ratio: 1 / 1; cursor: grab; touch-action: none; outline: none; border-radius: 50%; overflow: visible; }
+  .knob svg:focus-visible { box-shadow: 0 0 0 3px rgba(18, 87, 214, .35); }
   .knob svg.dragging { cursor: grabbing; }
-  .knob-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; text-align: center; }
-  .knob-value { font-family: "Space Grotesk", Inter, sans-serif; font-size: 20px; font-weight: 600; }
-  .knob-value i { font-style: normal; color: var(--muted); font-size: 12px; margin-left: 3px; font-weight: 500; }
-  .side-ctrl { display: flex; flex-direction: column; gap: 12px; }
-  .switch { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line); cursor: pointer; }
-  .switch .track { width: 46px; height: 26px; border-radius: 999px; background: rgba(255, 255, 255, .15); position: relative; transition: background .25s; flex: none; }
-  .switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .25s; }
-  .switch.on .track { background: linear-gradient(90deg, var(--orange), #ff3d8b); }
+  .knob-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 500; text-align: center; }
+  .knob-value { font-family: var(--mono); font-size: 19px; font-weight: 600; min-width: 7.5em; text-align: center; white-space: nowrap; }
+  .knob-value i { font-style: normal; color: var(--muted); font-size: 11.5px; margin-left: 4px; font-weight: 400; }
+  .side-ctrl { display: flex; flex-direction: column; gap: 10px; }
+  .switch { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--panel2); border: 1px solid var(--line); cursor: pointer; }
+  .switch .track { width: 44px; height: 24px; border-radius: 999px; background: #cfd6df; position: relative; transition: background .2s; flex: none; }
+  .switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 2px rgba(0, 0, 0, .2); }
+  .switch.on .track { background: var(--accent); }
   .switch.on .track::after { transform: translateX(20px); }
   .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .presets button { padding: 8px 6px; font-size: 12px; }
@@ -110,41 +124,41 @@
   .gauge-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .gauge { position: relative; text-align: center; }
   .gauge canvas { width: 100%; aspect-ratio: 1.55 / 1; display: block; }
-  .gauge .g-val { font-family: "Space Grotesk", Inter, sans-serif; font-size: clamp(18px, 2.3vw, 26px); font-weight: 700; margin-top: -10px; }
-  .gauge .g-lab { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-  .gauge .g-sub { font-size: 11.5px; color: #c4d4ea; margin-top: 2px; }
-  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
-  .kpi { background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
-  .kpi small { display: block; font-size: 10.5px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
-  .kpi b { font-family: "Space Grotesk", Inter, sans-serif; font-size: 20px; font-weight: 600; display: block; margin-top: 2px; }
-  .kpi em { font-style: normal; font-size: 11.5px; }
-  .cube { margin-top: 16px; background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
-  .cube-head, .cube-row { display: grid; grid-template-columns: 74px minmax(0, 1fr) 54px; gap: 10px; align-items: center; }
-  .cube-head { font-size: 10.5px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
-  .cube-row { font-size: 12.5px; padding: 3px 0; border-radius: 8px; transition: background .3s; }
-  .cube-row.cur { background: rgba(46, 230, 197, .1); }
-  .cube-row .v { font-family: "Space Grotesk", Inter, sans-serif; font-weight: 600; padding-left: 6px; }
-  .cube-row .track { height: 10px; border-radius: 99px; background: rgba(255, 255, 255, .06); overflow: hidden; }
-  .cube-row .fill { height: 100%; border-radius: 99px; transition: width .4s; }
-  .cube-row .pct { text-align: right; font-family: "Space Grotesk", Inter, sans-serif; font-weight: 600; padding-right: 6px; }
+  .gauge .g-val { font-family: var(--mono); font-size: clamp(18px, 2.2vw, 24px); font-weight: 600; margin-top: -8px; }
+  .gauge .g-lab { font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  .gauge .g-sub { font-size: 11.5px; color: #33415c; margin-top: 2px; min-height: 2.8em; }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+  .kpi { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+  .kpi small { display: block; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; min-height: 2.5em; }
+  .kpi b { font-family: var(--mono); font-size: 19px; font-weight: 600; display: block; margin-top: 2px; white-space: nowrap; }
+  .kpi em { font-style: normal; font-size: 11.5px; font-family: var(--mono); }
   .up { color: var(--red); } .down { color: var(--green); } .flat { color: var(--muted); }
+  .cube { margin-top: 12px; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .cube-head, .cube-row { display: grid; grid-template-columns: 74px minmax(0, 1fr) 54px; gap: 10px; align-items: center; }
+  .cube-head { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 4px; }
+  .cube-row { font-size: 12.5px; padding: 3px 0; border-radius: 6px; transition: background .3s; }
+  .cube-row.cur { background: #e7f0ff; box-shadow: inset 2px 0 0 var(--accent); }
+  .cube-row .v { font-family: var(--mono); font-weight: 600; padding-left: 8px; }
+  .cube-row .track { height: 9px; border-radius: 3px; background: #e6ebf1; overflow: hidden; }
+  .cube-row .fill { height: 100%; border-radius: 3px; transition: width .4s; }
+  .cube-row .pct { text-align: right; font-family: var(--mono); font-weight: 600; padding-right: 6px; }
 
   /* ---------- Analysis ---------- */
   .analysis { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
   .headline { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  .headline .big { font-family: "Space Grotesk", Inter, sans-serif; font-size: clamp(30px, 4vw, 44px); font-weight: 700; letter-spacing: -.02em; }
-  .headline .big.good { background: linear-gradient(90deg, var(--teal), var(--green)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .headline .big { font-family: var(--mono); font-size: clamp(28px, 3.6vw, 40px); font-weight: 600; letter-spacing: -.02em; }
+  .headline .big.good { color: var(--green); }
   .headline .big.bad { color: var(--red); }
   .headline span { color: var(--muted); font-size: 13px; }
   .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; gap: 8px; }
-  .bar { height: 30px; border-radius: 10px; overflow: hidden; display: flex; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); }
-  .bar > div { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
-  .seg-rest { background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .07) 0 6px, rgba(255, 255, 255, .03) 6px 12px); color: var(--muted); }
-  .seg-speed { background: linear-gradient(90deg, #14b8a6, var(--teal)); color: #032; }
-  .seg-kite { background: linear-gradient(90deg, #7c4dff, var(--violet)); color: #fff; }
-  .seg-extra { background: linear-gradient(90deg, #c2185b, var(--red)); color: #fff; }
-  .insight { background: linear-gradient(135deg, rgba(46, 230, 197, .08), rgba(164, 107, 255, .08)); border: 1px solid var(--line); border-radius: 14px; padding: 11px 13px; font-size: 13px; line-height: 1.5; color: #d6e3f5; }
-  .insight b { color: #fff; }
+  .bar-label span:last-child { font-family: var(--mono); font-size: 11.5px; }
+  .bar { height: 28px; border-radius: 6px; overflow: hidden; display: flex; background: #eef1f5; border: 1px solid var(--line); }
+  .bar > div { height: 100%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+  .seg-rest { background: repeating-linear-gradient(135deg, #eef1f5 0 6px, #e3e8ee 6px 12px); color: var(--muted); }
+  .seg-speed { background: var(--speed); color: #fff; }
+  .seg-kite { background: var(--kite); color: #fff; }
+  .insight { background: #f4f8ff; border: 1px solid #d0def7; border-left: 3px solid var(--accent); border-radius: 8px; padding: 11px 13px; font-size: 13px; line-height: 1.5; color: #33415c; min-height: 4.6em; }
+  .insight b { color: var(--text); }
   .curve-wrap { position: relative; }
   .curve-wrap canvas { width: 100%; height: 230px; display: block; }
 
@@ -172,7 +186,13 @@
       </div>
       <div>
         <h1 class="display">Kite<span>Cargo</span></h1>
-        <p>Un porte-conteneurs tracté par un kite de 400 m² · trajet Rotterdam → New York (3 400 milles)</p>
+        <p>Simulateur de propulsion assistée par kite pour un porte-conteneurs</p>
+        <div class="specs">
+          <span class="spec">Moteur <b>8,1 MW</b> @ 14 nd</span>
+          <span class="spec">Kite <b>400 m²</b></span>
+          <span class="spec">Route <b>Rotterdam → New York</b></span>
+          <span class="spec">Distance <b>3 400 NM</b></span>
+        </div>
       </div>
     </div>
     <div class="panel mission" id="mission">
@@ -201,7 +221,7 @@
       <div class="kite-state" id="kiteState"><span class="led"></span><span id="kiteStateText"></span></div>
     </div>
     <div class="panel compass">
-      <p class="panel-title">Vue du dessus</p>
+      <p class="panel-title"><b>02</b>Vue du dessus · cap et vents</p>
       <canvas class="compass-cv" id="compass"></canvas>
       <div class="legend">
         <span><i style="background:var(--green)"></i>Cap &amp; vitesse</span>
@@ -213,6 +233,7 @@
   </section>
 
   <section class="panel controls">
+    <p class="panel-title"><b>03</b>Paramètres de navigation et météo</p>
     <div class="knobs" id="knobs"></div>
     <div class="side-ctrl">
       <div class="switch on" id="kiteSwitch" role="switch" aria-checked="true" tabindex="0">
@@ -231,7 +252,7 @@
 
   <section class="row-bottom">
     <div class="panel gauges">
-      <p class="panel-title">Gains par rapport à la référence (14 nœuds, sans kite)</p>
+      <p class="panel-title"><b>04</b>Gains vs référence (14 nœuds, sans kite)</p>
       <div class="gauge-grid">
         <div class="gauge"><canvas id="g1"></canvas><div class="g-val" id="g1v">–</div><div class="g-lab">Carburant économisé</div><div class="g-sub" id="g1s"></div></div>
         <div class="gauge"><canvas id="g2"></canvas><div class="g-val" id="g2v">–</div><div class="g-lab">CO₂ évité / trajet</div><div class="g-sub" id="g2s"></div></div>
@@ -244,7 +265,7 @@
         <div class="kpi"><small>Puissance moteur</small><b id="kPow">–</b><em id="kPowD"></em></div>
       </div>
       <div class="cube">
-        <p class="panel-title" style="margin:0 0 4px">La loi du cube · sans kite</p>
+        <p class="panel-title" style="margin:0 0 4px">Loi du cube · coque seule, sans vent</p>
         <p class="hint" style="margin:0 0 10px">Puissance ∝ V³ : un peu moins vite, c'est beaucoup moins de carburant (même en comptant un trajet plus long).</p>
         <div class="cube-head"><span>Vitesse</span><span>Carburant par trajet</span><span></span></div>
         <div id="cubeRows"></div>
@@ -252,7 +273,7 @@
     </div>
 
     <div class="panel analysis">
-      <p class="panel-title" style="margin:0">D'où viennent les économies ?</p>
+      <p class="panel-title" style="margin:0"><b>05</b>D'où viennent les économies ?</p>
       <div class="headline"><div class="big display" id="aBig">–</div><span id="aSub"></span></div>
       <div>
         <div class="bar-label"><span>Émissions du trajet (100 % = référence)</span><span id="aRest"></span></div>
@@ -431,20 +452,20 @@
       const a = start + sweep * i / nT;
       const major = wrap ? i % 9 === 0 : i % 7 === 0;
       const r1 = 56, r2 = major ? 50 : 53;
-      ticks += `<line x1="${60 + r1 * Math.sin(rad(a))}" y1="${60 - r1 * Math.cos(rad(a))}" x2="${60 + r2 * Math.sin(rad(a))}" y2="${60 - r2 * Math.cos(rad(a))}" stroke="rgba(255,255,255,${major ? .55 : .2})" stroke-width="${major ? 1.6 : 1}" stroke-linecap="round"/>`;
+      ticks += `<line x1="${60 + r1 * Math.sin(rad(a))}" y1="${60 - r1 * Math.cos(rad(a))}" x2="${60 + r2 * Math.sin(rad(a))}" y2="${60 - r2 * Math.cos(rad(a))}" stroke="rgba(15,27,45,${major ? .55 : .22})" stroke-width="${major ? 1.6 : 1}" stroke-linecap="round"/>`;
     }
     let letters = "";
     if (wrap) {
       ["N", "E", "S", "O"].forEach((t, i) => {
         const a = i * 90, r = 41;
-        letters += `<text x="${60 + r * Math.sin(rad(a))}" y="${60 - r * Math.cos(rad(a)) + 3.5}" text-anchor="middle" font-size="9" font-weight="700" fill="${i === 0 ? o.color : "rgba(255,255,255,.5)"}" font-family="Space Grotesk, Inter, sans-serif">${t}</text>`;
+        letters += `<text x="${60 + r * Math.sin(rad(a))}" y="${60 - r * Math.cos(rad(a)) + 3.5}" text-anchor="middle" font-size="9" font-weight="700" fill="${i === 0 ? o.color : "#5b6b80"}" font-family="IBM Plex Mono, monospace">${t}</text>`;
       });
     }
     box.innerHTML = `
       <svg viewBox="0 0 120 120" tabindex="0" role="slider" aria-label="${o.label}" aria-valuemin="${o.min}" aria-valuemax="${o.max}">
         <defs>
           <radialGradient id="${id}b" cx="40%" cy="35%" r="75%">
-            <stop offset="0" stop-color="#3a4d68"/><stop offset=".55" stop-color="#18263a"/><stop offset="1" stop-color="#0a1320"/>
+            <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#eef2f6"/><stop offset="1" stop-color="#cdd5df"/>
           </radialGradient>
           <linearGradient id="${id}g" x1="0" y1="1" x2="1" y2="0">
             <stop offset="0" stop-color="${o.color2}"/><stop offset="1" stop-color="${o.color}"/>
@@ -452,15 +473,15 @@
           <filter id="${id}f" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter>
         </defs>
         ${ticks}
-        <path d="${wrap ? arcPath(60, 60, 47, 0, 359.9) : arcPath(60, 60, 47, start, start + sweep)}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5" stroke-linecap="round"/>
-        <path class="kv-glow" fill="none" stroke="${o.color}" stroke-width="6" stroke-linecap="round" opacity=".55" filter="url(#${id}f)"/>
+        <path d="${wrap ? arcPath(60, 60, 47, 0, 359.9) : arcPath(60, 60, 47, start, start + sweep)}" fill="none" stroke="#e6ebf1" stroke-width="5" stroke-linecap="round"/>
+        <path class="kv-glow" fill="none" stroke="${o.color}" stroke-width="6" stroke-linecap="round" opacity=".22" filter="url(#${id}f)"/>
         <path class="kv" fill="none" stroke="url(#${id}g)" stroke-width="5" stroke-linecap="round"/>
-        <circle cx="60" cy="60" r="35" fill="url(#${id}b)" stroke="rgba(255,255,255,.12)"/>
-        <circle cx="60" cy="60" r="29" fill="none" stroke="rgba(255,255,255,.05)"/>
+        <circle cx="60" cy="60" r="35" fill="url(#${id}b)" stroke="#b9c3cf"/>
+        <circle cx="60" cy="60" r="29" fill="none" stroke="rgba(15,27,45,.07)"/>
         ${letters}
         <g class="kp"><line x1="60" y1="${wrap ? 31 : 32}" x2="60" y2="${wrap ? 46 : 44}" stroke="${o.color}" stroke-width="3.2" stroke-linecap="round"/>
         ${wrap ? `<path d="M60 26 L55.5 33 L64.5 33 Z" fill="${o.color}"/>` : ""}</g>
-        <circle cx="60" cy="60" r="5" fill="#0a1320" stroke="rgba(255,255,255,.2)"/>
+        <circle cx="60" cy="60" r="5" fill="#33415c" stroke="#fff"/>
       </svg>
       <div class="knob-label">${o.label}</div>
       <div class="knob-value" aria-live="off"></div>`;
@@ -520,13 +541,13 @@
     knobs[o.key] = { set, render };
   }
 
-  createKnob({ key: "speed", label: "Vitesse du bateau", min: 8, max: 16, step: 0.1, wheel: 0.5, color: "#2ee6c5", color2: "#3ddc84",
+  createKnob({ key: "speed", label: "Vitesse du bateau", min: 8, max: 16, step: 0.1, wheel: 0.5, color: "#0b8f80", color2: "#2f9e44",
     fmt: v => `${v.toFixed(1)}<i>nœuds</i>` });
-  createKnob({ key: "heading", label: "Cap du bateau", min: 0, max: 360, step: 1, wheel: 5, wrap: true, color: "#3ddc84", color2: "#2ee6c5",
+  createKnob({ key: "heading", label: "Cap du bateau", min: 0, max: 360, step: 1, wheel: 5, wrap: true, color: "#2f9e44", color2: "#0b8f80",
     fmt: v => `${Math.round(v)}°<i>${cardinal(v)}</i>` });
-  createKnob({ key: "windDir", label: "Vent venant du", min: 0, max: 360, step: 1, wheel: 5, wrap: true, color: "#4aa8ff", color2: "#a46bff",
+  createKnob({ key: "windDir", label: "Vent venant du", min: 0, max: 360, step: 1, wheel: 5, wrap: true, color: "#1c7ed6", color2: "#6741d9",
     fmt: v => `${Math.round(v)}°<i>${cardinal(v)}</i>` });
-  createKnob({ key: "windSpeed", label: "Vitesse du vent", min: 0, max: 45, step: 1, wheel: 1, color: "#a46bff", color2: "#4aa8ff",
+  createKnob({ key: "windSpeed", label: "Vitesse du vent", min: 0, max: 45, step: 1, wheel: 1, color: "#6741d9", color2: "#1c7ed6",
     fmt: v => `${Math.round(v)}<i>nœuds</i>` });
 
   function setParams(o) {
@@ -673,7 +694,7 @@
     const curV = Math.round(P.speed);
     $("cubeRows").innerHTML = speeds.map(v => {
       const pct = Math.pow(v / CFG.VREF, 2) * 100;
-      const col = colorAt([[0, "#2ee6c5"], [0.55, "#ffc145"], [1, "#ff4d6d"]], (pct - 50) / 80);
+      const col = colorAt([[0, "#2f9e44"], [0.55, "#f08c00"], [1, "#e03131"]], (pct - 50) / 80);
       return `<div class="cube-row${v === curV ? " cur" : ""}"><span class="v">${v} nd</span>
         <div class="track"><div class="fill" style="width:${pct / 1.35}%;background:${col}"></div></div>
         <span class="pct" style="color:${col}">${fmt0(pct)} %</span></div>`;
@@ -734,7 +755,7 @@
     ctx.save();
     ctx.translate(x, y); ctx.scale(s, s);
     const g = ctx.createLinearGradient(0, -30, 0, 20);
-    g.addColorStop(0, "rgba(255,225,215,.55)"); g.addColorStop(1, "rgba(150,140,190,.18)");
+    g.addColorStop(0, "rgba(255,255,255,.95)"); g.addColorStop(1, "rgba(214,226,240,.85)");
     ctx.fillStyle = g;
     ctx.beginPath();
     ctx.ellipse(0, 0, 60, 14, 0, 0, Math.PI * 2);
@@ -755,22 +776,14 @@
 
     // --- Ciel
     const sky = ctx.createLinearGradient(0, 0, 0, horizon);
-    sky.addColorStop(0, "#060f22"); sky.addColorStop(0.45, "#173a66"); sky.addColorStop(0.8, "#7c5a8c"); sky.addColorStop(1, "#ffae7a");
+    sky.addColorStop(0, "#7fb3e0"); sky.addColorStop(0.55, "#b9d7f0"); sky.addColorStop(1, "#e8f2fa");
     ctx.fillStyle = sky; ctx.fillRect(0, 0, w, horizon + 2);
-    // étoiles discrètes
-    ctx.fillStyle = "rgba(255,255,255,.5)";
-    for (let i = 0; i < 40; i++) {
-      const sx = (i * 137.5 % 1) * w + ((i * 73) % w), sy = ((i * 91) % 100) / 100 * horizon * 0.35;
-      ctx.globalAlpha = 0.25 + 0.25 * Math.sin(t * 1.3 + i);
-      ctx.fillRect(sx % w, sy, 1.3, 1.3);
-    }
-    ctx.globalAlpha = 1;
     // soleil
-    const sunX = w * 0.16, sunY = horizon - 6;
-    let g = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, h * 0.55);
-    g.addColorStop(0, "rgba(255,210,150,.9)"); g.addColorStop(0.08, "rgba(255,170,110,.55)"); g.addColorStop(0.4, "rgba(255,120,120,.12)"); g.addColorStop(1, "rgba(255,120,120,0)");
+    const sunX = w * 0.13, sunY = horizon * 0.28;
+    let g = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, h * 0.45);
+    g.addColorStop(0, "rgba(255,250,225,.95)"); g.addColorStop(0.1, "rgba(255,245,210,.6)"); g.addColorStop(1, "rgba(255,245,210,0)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, horizon);
-    ctx.fillStyle = "#ffe1b8"; ctx.beginPath(); ctx.arc(sunX, sunY, Math.max(10, h * 0.035), Math.PI, 0); ctx.fill();
+    ctx.fillStyle = "#fffbe8"; ctx.beginPath(); ctx.arc(sunX, sunY, Math.max(10, h * 0.03), 0, Math.PI * 2); ctx.fill();
 
     // --- Nuages : se déplacent avec le vent apparent
     const flowFwd = sim.deck.speed * Math.cos(rad(sim.flowRelDeck)); // m/s
@@ -782,11 +795,11 @@
 
     // --- Mer
     const sea = ctx.createLinearGradient(0, horizon, 0, h);
-    sea.addColorStop(0, "#2a4f78"); sea.addColorStop(0.25, "#123459"); sea.addColorStop(1, "#040f1f");
+    sea.addColorStop(0, "#6f9ec6"); sea.addColorStop(0.3, "#3f74a3"); sea.addColorStop(1, "#1f4d78");
     ctx.fillStyle = sea; ctx.fillRect(0, horizon, w, h - horizon);
     // reflet du soleil
     g = ctx.createRadialGradient(sunX, horizon, 0, sunX, horizon, w * 0.35);
-    g.addColorStop(0, "rgba(255,180,120,.35)"); g.addColorStop(1, "rgba(255,180,120,0)");
+    g.addColorStop(0, "rgba(255,255,240,.28)"); g.addColorStop(1, "rgba(255,255,240,0)");
     ctx.fillStyle = g; ctx.fillRect(0, horizon, w, (h - horizon) * 0.6);
 
     scene.sea += sim.V * dt * 9;
@@ -801,7 +814,7 @@
         const yy = y + Math.sin(x * freq + scene.sea * freq * (0.6 + k) + i * 1.7) * a + Math.sin(x * freq * 2.3 + t * 1.2 + i) * a * 0.3;
         x === 0 ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy);
       }
-      ctx.strokeStyle = `rgba(160,210,255,${0.05 + k * 0.1})`;
+      ctx.strokeStyle = `rgba(255,255,255,${0.1 + k * 0.14})`;
       ctx.lineWidth = 1 + k * 1.4;
       ctx.stroke();
     }
@@ -826,7 +839,7 @@
     ctx.translate(x0, wl + bob);
     ctx.rotate(pitch);
     // ombre / reflet
-    ctx.fillStyle = "rgba(0,10,25,.45)";
+    ctx.fillStyle = "rgba(10,35,70,.22)";
     ctx.beginPath(); ctx.ellipse(0, H * 0.35, L * 0.52, H * 0.35, 0, 0, Math.PI * 2); ctx.fill();
     // conteneurs
     const cw = L * 0.034, ch = H * 0.36;
@@ -858,7 +871,7 @@
     // liseré
     ctx.fillStyle = "rgba(255,255,255,.75)";
     ctx.fillRect(-L / 2 + 4, -H * 0.92, L * 0.98, 1.4);
-    ctx.font = `600 ${Math.max(8, H * 0.28)}px "Space Grotesk", Inter, sans-serif`;
+    ctx.font = `600 ${Math.max(8, H * 0.28)}px "IBM Plex Sans", Inter, sans-serif`;
     ctx.fillStyle = "rgba(255,255,255,.75)";
     ctx.fillText("KITECARGO", L / 2 - L * 0.2, -H * 0.42);
     // passerelle
@@ -918,8 +931,8 @@
       if (s.life > s.max) { scene.smoke.splice(i, 1); continue; }
       s.vx = lerp(s.vx, smokeWind, dt * 0.8);
       s.x += s.vx * dt; s.y += s.vy * dt; s.vy *= 0.995; s.r += dt * 9;
-      const a = (1 - s.life / s.max) * s.dark * 0.4;
-      ctx.fillStyle = `rgba(70,72,84,${a})`;
+      const a = (1 - s.life / s.max) * s.dark * 0.26;
+      ctx.fillStyle = `rgba(110,116,128,${a})`;
       ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
     }
 
@@ -931,7 +944,11 @@
     scene.kt += dt * Math.PI * 2 / period;
     const kt = scene.kt;
     const Lt = Math.max(40, Math.min((mast.y - 34) / 0.7, (w - mast.x - 40) / 0.82));
-    const az = sim.pullAz + 30 * Math.sin(kt);
+    // la fenêtre de vol pivote en douceur quand le cap ou le vent changent ; gros changement = on efface la traînée
+    if (scene.az === undefined) scene.az = sim.pullAz;
+    if (Math.abs(sim.pullAz - scene.az) > 12) scene.trail.length = 0;
+    scene.az = lerp(scene.az, sim.pullAz, Math.min(1, dt * 3));
+    const az = scene.az + 30 * Math.sin(kt);
     const el = CFG.ELEV + 9 * Math.sin(2 * kt);
     const f = Math.cos(rad(el)) * Math.cos(rad(az));
     const sdep = Math.cos(rad(el)) * Math.sin(rad(az));
@@ -952,7 +969,7 @@
     if (scene.trail.length > 2) {
       for (let i = 1; i < scene.trail.length; i++) {
         const a = i / scene.trail.length;
-        ctx.strokeStyle = `rgba(255,160,90,${a * 0.55})`;
+        ctx.strokeStyle = `rgba(232,89,12,${a * 0.75})`;
         ctx.lineWidth = 1 + a * 2.2;
         ctx.beginPath();
         ctx.moveTo(mast.x + scene.trail[i - 1].x, mast.y + scene.trail[i - 1].y);
@@ -964,7 +981,7 @@
     // câble
     if (dep > 0.02) {
       const sag = 18 * (1 - Math.min(sim.T / 150, 1)) + 4;
-      ctx.strokeStyle = "rgba(240,240,255,.75)"; ctx.lineWidth = 1.3;
+      ctx.strokeStyle = "rgba(30,40,60,.7)"; ctx.lineWidth = 1.2;
       ctx.beginPath(); ctx.moveTo(mast.x, mast.y);
       ctx.quadraticCurveTo((mast.x + kx) / 2, (mast.y + ky) / 2 + sag, kx, ky);
       ctx.stroke();
@@ -982,9 +999,9 @@
     ctx.translate(kx, ky);
     ctx.rotate(scene.angle);
     const kg = ctx.createLinearGradient(0, -span / 2, 0, span / 2);
-    kg.addColorStop(0, "#ffb347"); kg.addColorStop(0.5, "#ff5e62"); kg.addColorStop(1, "#c04cfd");
+    kg.addColorStop(0, "#ff922b"); kg.addColorStop(0.5, "#f03e3e"); kg.addColorStop(1, "#ae3ec9");
     // halo
-    ctx.shadowColor = "rgba(255,110,90,.8)"; ctx.shadowBlur = 16 * dep;
+    ctx.shadowColor = "rgba(15,27,45,.25)"; ctx.shadowBlur = 4 * dep;
     ctx.fillStyle = kg;
     ctx.beginPath();
     ctx.moveTo(-span * 0.1, -span / 2);
@@ -1020,7 +1037,7 @@
 
     // vignette
     g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.75);
-    g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,5,15,.45)");
+    g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(20,45,80,.12)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 
     // traction instantanée (elle pulse avec le 8)
@@ -1038,7 +1055,7 @@
     const a = Math.atan2(y2 - y1, x2 - x1), hl = 8 + width * 1.6;
     ctx.save();
     ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width; ctx.lineCap = "round";
-    ctx.shadowColor = color; ctx.shadowBlur = 10;
+    
     if (dash) ctx.setLineDash(dash);
     ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a) * hl * 0.6, y2 - Math.sin(a) * hl * 0.6); ctx.stroke();
     ctx.setLineDash([]);
@@ -1066,10 +1083,10 @@
     ctx.clearRect(0, 0, w, h);
     const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.44;
     let g = ctx.createRadialGradient(cx, cy, R * 0.1, cx, cy, R * 1.05);
-    g.addColorStop(0, "#14304f"); g.addColorStop(0.7, "#0b1d33"); g.addColorStop(1, "#071322");
+    g.addColorStop(0, "#ffffff"); g.addColorStop(0.75, "#f5f8fb"); g.addColorStop(1, "#e9eef4");
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "rgba(120,180,255,.25)"; ctx.lineWidth = 1.2; ctx.stroke();
-    for (const rr of [0.33, 0.66]) { ctx.strokeStyle = "rgba(120,180,255,.08)"; ctx.beginPath(); ctx.arc(cx, cy, R * rr, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.strokeStyle = "rgba(15,27,45,.3)"; ctx.lineWidth = 1.2; ctx.stroke();
+    for (const rr of [0.33, 0.66]) { ctx.strokeStyle = "rgba(15,27,45,.09)"; ctx.beginPath(); ctx.arc(cx, cy, R * rr, 0, Math.PI * 2); ctx.stroke(); }
 
     // particules de vent
     const [wdx, wdy] = bdir(P.windDir + 180);
@@ -1079,7 +1096,7 @@
       p.x += wdx * dt * (0.15 + wsp * 0.45); p.y += wdy * dt * (0.15 + wsp * 0.45); p.life += dt * 0.4;
       if (p.x * p.x + p.y * p.y > 1.05 || p.life > 1) { p.x = Math.random() * 2 - 1 - wdx * 0.6; p.y = Math.random() * 2 - 1 - wdy * 0.6; p.life = 0; }
       const a = Math.sin(p.life * Math.PI) * 0.5 * Math.min(1, wsp + 0.2);
-      ctx.strokeStyle = `rgba(110,180,255,${a})`; ctx.lineWidth = 1.2;
+      ctx.strokeStyle = `rgba(28,126,214,${a * 0.7})`; ctx.lineWidth = 1.2;
       ctx.beginPath(); ctx.moveTo(cx + p.x * R, cy + p.y * R); ctx.lineTo(cx + (p.x - wdx * 0.06) * R, cy + (p.y - wdy * 0.06) * R); ctx.stroke();
     }
     ctx.restore();
@@ -1088,14 +1105,14 @@
     for (let a = 0; a < 360; a += 10) {
       const [dx, dy] = bdir(a), major = a % 90 === 0, mid = a % 30 === 0;
       const r1 = R * (major ? 0.86 : mid ? 0.9 : 0.94);
-      ctx.strokeStyle = `rgba(255,255,255,${major ? .7 : mid ? .35 : .15})`; ctx.lineWidth = major ? 2 : 1;
+      ctx.strokeStyle = `rgba(15,27,45,${major ? .7 : mid ? .35 : .15})`; ctx.lineWidth = major ? 2 : 1;
       ctx.beginPath(); ctx.moveTo(cx + dx * r1, cy + dy * r1); ctx.lineTo(cx + dx * R * 0.98, cy + dy * R * 0.98); ctx.stroke();
     }
-    ctx.font = `700 ${Math.max(11, R * 0.085)}px "Space Grotesk", Inter, sans-serif`;
+    ctx.font = `600 ${Math.max(11, R * 0.085)}px "IBM Plex Mono", monospace`;
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     [["N", 0], ["E", 90], ["S", 180], ["O", 270]].forEach(([l, a]) => {
       const [dx, dy] = bdir(a);
-      ctx.fillStyle = l === "N" ? "#ff8a3d" : "rgba(255,255,255,.75)";
+      ctx.fillStyle = l === "N" ? "#e8590c" : "#33415c";
       ctx.fillText(l, cx + dx * R * 0.76, cy + dy * R * 0.76);
     });
 
@@ -1103,35 +1120,35 @@
     {
       const [dx, dy] = bdir(smoothC.windDir);
       const len = 0.25 + Math.min(P.windSpeed / 45, 1) * 0.35;
-      arrow(ctx, cx + dx * R * 0.97, cy + dy * R * 0.97, cx + dx * R * (0.97 - len), cy + dy * R * (0.97 - len), "#4aa8ff", 3.5);
+      arrow(ctx, cx + dx * R * 0.97, cy + dy * R * 0.97, cx + dx * R * (0.97 - len), cy + dy * R * (0.97 - len), "#1c7ed6", 3.5);
     }
     // vent apparent (au pont)
     {
       const [dx, dy] = bdir(smoothC.app);
       const len = 0.2 + Math.min(sim.deck.speed / KN / 50, 1) * 0.4;
-      arrow(ctx, cx + dx * R * (0.25 + len), cy + dy * R * (0.25 + len), cx + dx * R * 0.25, cy + dy * R * 0.25, "#2ee6c5", 2.4, [5, 4]);
+      arrow(ctx, cx + dx * R * (0.25 + len), cy + dy * R * (0.25 + len), cx + dx * R * 0.25, cy + dy * R * 0.25, "#0c8599", 2.4, [5, 4]);
     }
     // vitesse du bateau
     {
       const [dx, dy] = bdir(smoothC.heading);
       const len = 0.2 + (P.speed - 8) / 8 * 0.25;
-      arrow(ctx, cx + dx * R * 0.18, cy + dy * R * 0.18, cx + dx * R * (0.18 + len), cy + dy * R * (0.18 + len), "#3ddc84", 3);
+      arrow(ctx, cx + dx * R * 0.18, cy + dy * R * 0.18, cx + dx * R * (0.18 + len), cy + dy * R * (0.18 + len), "#2f9e44", 3);
     }
     // traction du kite
     if (sim.state === "flying" && smoothC.force > 1) {
       const [dx, dy] = bdir(smoothC.pull);
       const len = 0.12 + Math.min(sim.T / CFG.TMAX, 1) * 0.42;
-      arrow(ctx, cx + dx * R * 0.12, cy + dy * R * 0.12, cx + dx * R * (0.12 + len), cy + dy * R * (0.12 + len), "#ff8a3d", 3.2);
+      arrow(ctx, cx + dx * R * 0.12, cy + dy * R * 0.12, cx + dx * R * (0.12 + len), cy + dy * R * (0.12 + len), "#e8590c", 3.2);
       // petit kite au bout
       const kx = cx + dx * R * (0.12 + len + 0.07), ky = cy + dy * R * (0.12 + len + 0.07);
-      ctx.fillStyle = "#ff5e62"; ctx.beginPath(); ctx.arc(kx, ky, 4 + Math.sin(scene.kt) * 1.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f03e3e"; ctx.beginPath(); ctx.arc(kx, ky, 4 + Math.sin(scene.kt) * 1.2, 0, Math.PI * 2); ctx.fill();
     }
 
     // bateau
     ctx.save();
     ctx.translate(cx, cy); ctx.rotate(rad(smoothC.heading));
     const s = R * 0.3;
-    ctx.fillStyle = "#e9eef5"; ctx.strokeStyle = "rgba(0,0,0,.4)"; ctx.lineWidth = 1;
+    ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#33415c"; ctx.lineWidth = 1.3;
     ctx.beginPath();
     ctx.moveTo(0, -s * 0.62);
     ctx.quadraticCurveTo(s * 0.13, -s * 0.38, s * 0.13, -s * 0.1);
@@ -1148,9 +1165,9 @@
   // ================================================================
   const GA = [setupCanvas($("g1")), setupCanvas($("g2")), setupCanvas($("g3"))];
   const GSTOPS = [
-    [[0, "#ff4d6d"], [0.3, "#ffc145"], [0.6, "#3ddc84"], [1, "#2ee6c5"]],
-    [[0, "#ff4d6d"], [0.3, "#ffc145"], [0.6, "#3ddc84"], [1, "#2ee6c5"]],
-    [[0, "#4aa8ff"], [0.5, "#a46bff"], [1, "#ff8a3d"]]
+    [[0, "#e03131"], [0.3, "#f08c00"], [0.6, "#2f9e44"], [1, "#0b8f80"]],
+    [[0, "#e03131"], [0.3, "#f08c00"], [0.6, "#2f9e44"], [1, "#0b8f80"]],
+    [[0, "#1c7ed6"], [0.5, "#6741d9"], [1, "#e8590c"]]
   ];
   const gaugeVal = [0, 0, 0];
 
@@ -1161,7 +1178,7 @@
     const th = Math.max(8, R * 0.13);
     // piste
     ctx.lineCap = "round";
-    ctx.strokeStyle = "rgba(255,255,255,.07)"; ctx.lineWidth = th;
+    ctx.strokeStyle = "#edf1f6"; ctx.lineWidth = th;
     ctx.beginPath(); ctx.arc(cx, cy, R, Math.PI, 2 * Math.PI); ctx.stroke();
     // zones colorées (fond)
     const N = 60;
@@ -1173,7 +1190,7 @@
     ctx.globalAlpha = 1;
     // valeur
     const n = Math.round(N * clamp(frac, 0, 1));
-    ctx.save(); ctx.shadowBlur = 14;
+    ctx.save();
     for (let i = 0; i < n; i++) {
       const a0 = Math.PI + Math.PI * i / N, a1 = Math.PI + Math.PI * (i + 1) / N;
       const c = colorAt(stops, i / N);
@@ -1182,13 +1199,13 @@
     }
     ctx.restore();
     // graduations
-    ctx.fillStyle = "rgba(255,255,255,.5)";
-    ctx.font = `500 ${Math.max(9, R * 0.1)}px Inter, sans-serif`;
+    ctx.fillStyle = "#5b6b80";
+    ctx.font = `500 ${Math.max(9, R * 0.1)}px "IBM Plex Mono", monospace`;
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     for (let i = 0; i <= 10; i++) {
       const a = Math.PI + Math.PI * i / 10;
       const r1 = R - th / 2 - 4, r2 = r1 - (i % 5 === 0 ? 8 : 4);
-      ctx.strokeStyle = `rgba(255,255,255,${i % 5 === 0 ? .5 : .22})`; ctx.lineWidth = 1.2; ctx.lineCap = "round";
+      ctx.strokeStyle = `rgba(15,27,45,${i % 5 === 0 ? .5 : .22})`; ctx.lineWidth = 1.2; ctx.lineCap = "round";
       ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2); ctx.stroke();
       if (i % 5 === 0) ctx.fillText(labels[i / 5], cx + Math.cos(a) * (r2 - 11), cy + Math.sin(a) * (r2 - 11) + 2);
     }
@@ -1196,11 +1213,10 @@
     const a = Math.PI + Math.PI * clamp(frac, 0, 1);
     const c = colorAt(stops, frac);
     ctx.save();
-    ctx.shadowColor = c; ctx.shadowBlur = 12;
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.6; ctx.lineCap = "round";
+    ctx.strokeStyle = "#0f1b2d"; ctx.lineWidth = 2.6; ctx.lineCap = "round";
     ctx.beginPath(); ctx.moveTo(cx - Math.cos(a) * 8, cy - Math.sin(a) * 8); ctx.lineTo(cx + Math.cos(a) * (R - th * 0.9), cy + Math.sin(a) * (R - th * 0.9)); ctx.stroke();
     ctx.restore();
-    ctx.fillStyle = "#0a1320"; ctx.strokeStyle = c; ctx.lineWidth = 2.5;
+    ctx.fillStyle = "#ffffff"; ctx.strokeStyle = c; ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   }
 
@@ -1229,25 +1245,25 @@
     const { ctx, w, h } = CV;
     if (!S) return;
     ctx.clearRect(0, 0, w, h);
-    const pl = 52, pr = 16, pt = 16, pb = 34;
+    const pl = 66, pr = 16, pt = 16, pb = 34;
     const data = S.curve;
     const ymax = Math.max(...data.map(d => d.no), S.dec.E0) * 1.1;
     const X = v => pl + (v - 8) / 8 * (w - pl - pr);
     const Y = e => pt + (1 - e / ymax) * (h - pt - pb);
 
     // grille
-    ctx.font = "500 10.5px Inter, sans-serif"; ctx.fillStyle = "rgba(255,255,255,.45)";
+    ctx.font = "500 10.5px \"IBM Plex Mono\", monospace"; ctx.fillStyle = "#5b6b80";
     ctx.textAlign = "right"; ctx.textBaseline = "middle";
     const stepY = ymax > 1500 ? 500 : ymax > 600 ? 200 : 100;
     for (let e = 0; e <= ymax; e += stepY) {
-      ctx.strokeStyle = "rgba(255,255,255,.06)"; ctx.lineWidth = 1;
+      ctx.strokeStyle = "#e6ebf1"; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(pl, Y(e)); ctx.lineTo(w - pr, Y(e)); ctx.stroke();
       ctx.fillText(fmt0(e), pl - 8, Y(e));
     }
     ctx.textAlign = "center"; ctx.textBaseline = "top";
     for (let v = 8; v <= 16; v += 2) ctx.fillText(v, X(v), h - pb + 8);
-    ctx.fillText("vitesse (nœuds)", (pl + w - pr) / 2 + 60, h - pb + 8);
-    ctx.save(); ctx.translate(12, (pt + h - pb) / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = "middle";
+    ctx.fillText("vitesse (nœuds)", X(13), h - pb + 8);
+    ctx.save(); ctx.translate(10, (pt + h - pb) / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = "middle";
     ctx.fillText("t CO₂ / trajet", 0, 0); ctx.restore();
 
     // zone entre les courbes = apport du kite
@@ -1256,39 +1272,39 @@
       data.forEach((d, i) => i ? ctx.lineTo(X(d.v), Y(d.no)) : ctx.moveTo(X(d.v), Y(d.no)));
       for (let i = data.length - 1; i >= 0; i--) ctx.lineTo(X(data[i].v), Y(data[i].kite));
       ctx.closePath();
-      ctx.fillStyle = "rgba(164,107,255,.22)"; ctx.fill();
+      ctx.fillStyle = "rgba(103,65,217,.13)"; ctx.fill();
     }
     // référence
-    ctx.setLineDash([4, 5]); ctx.strokeStyle = "rgba(255,255,255,.35)";
+    ctx.setLineDash([4, 5]); ctx.strokeStyle = "rgba(15,27,45,.45)";
     ctx.beginPath(); ctx.moveTo(pl, Y(S.dec.E0)); ctx.lineTo(w - pr, Y(S.dec.E0)); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.textAlign = "left"; ctx.textBaseline = "bottom";
-    ctx.fillText("référence (14 nd, sans kite)", pl + 4, Y(S.dec.E0) - 3);
+    ctx.fillStyle = "#33415c"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillText("référence (14 nd, sans kite)", pl + 6, Y(S.dec.E0) + 4);
 
     // courbes
     const line = (key, color, wdt) => {
       ctx.beginPath();
       data.forEach((d, i) => i ? ctx.lineTo(X(d.v), Y(d[key])) : ctx.moveTo(X(d.v), Y(d[key])));
-      ctx.strokeStyle = color; ctx.lineWidth = wdt; ctx.shadowColor = color; ctx.shadowBlur = 8; ctx.stroke(); ctx.shadowBlur = 0;
+      ctx.strokeStyle = color; ctx.lineWidth = wdt; ctx.stroke();
     };
-    line("no", "#ff6b81", 2.2);
-    if (P.kite) line("kite", "#2ee6c5", 2.6);
+    line("no", "#e03131", 2.2);
+    if (P.kite) line("kite", "#0b8f80", 2.6);
 
     // points
     const ref = { x: X(CFG.VREF), y: Y(S.dec.E0) };
     const cur = { x: X(P.speed), y: Y(S.dec.E3) };
-    ctx.setLineDash([3, 4]); ctx.strokeStyle = "rgba(46,230,197,.45)";
+    ctx.setLineDash([3, 4]); ctx.strokeStyle = "rgba(11,143,128,.5)";
     ctx.beginPath(); ctx.moveTo(cur.x, pt); ctx.lineTo(cur.x, h - pb); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = "#0a1320"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+    ctx.fillStyle = "#ffffff"; ctx.strokeStyle = "#0f1b2d"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(ref.x, ref.y, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "#2ee6c5"; ctx.shadowColor = "#2ee6c5"; ctx.shadowBlur = 14;
-    ctx.beginPath(); ctx.arc(cur.x, cur.y, 6.5, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.fillStyle = "#0b8f80"; ctx.strokeStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(cur.x, cur.y, 6.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
     // légende
-    ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.font = "600 11px Inter, sans-serif";
-    const items = [["sans kite", "#ff6b81"]];
-    if (P.kite) items.push(["avec kite", "#2ee6c5"], ["apport du kite", "#b99bff"]);
+    ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.font = "500 11px \"IBM Plex Sans\", Inter, sans-serif";
+    const items = [["sans kite", "#e03131"]];
+    if (P.kite) items.push(["avec kite", "#0b8f80"], ["apport du kite", "#6741d9"]);
     let lx = pl + 8;
-    const ly = h - pb - 12;
+    const ly = pt + 6;
     for (const [txt, col] of items) {
       ctx.fillStyle = col; ctx.fillRect(lx, ly - 1.5, 14, 3);
       ctx.fillText(txt, lx + 19, ly);
