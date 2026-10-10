@@ -1,39 +1,55 @@
-# Journal du projet KiteCargo
+# Journal des prompts · Æther Swiss Kite Simulator
 
-Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien au plus récent.
+Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien au plus récent. Le projet s'appelait « KiteCargo » jusqu'au prompt 10.
 
-**Sources des informations :**
-- **Date et heure** : heure du commit git qui clôt le prompt (fin du travail). Le signe ≈ indique une heure estimée, faute de commit dédié.
-- **Temps de réflexion** et **tokens utilisés** : ces mesures ne sont pas accessibles depuis l'environnement de travail. Elles sont donc notées « non disponible » plutôt qu'estimées au hasard.
+**Comment les heures sont mesurées**
+- **Heure du prompt** : heure d'envoi du message, lue dans l'historique local de la session Claude Code (heure de Zurich).
+- **Heure du résultat** : moment où le travail est livré. Quand le prompt se termine par la question « je pousse sur GitHub ? », c'est l'heure de cette question : l'attente de la réponse n'est pas comptée.
+- **Temps de calcul** : écart entre les deux. Il comprend la réflexion, l'écriture du code et les tests automatiques.
+- **Tokens** : non accessibles depuis l'environnement de travail, donc non indiqués.
+
+| # | Prompt | Heure du prompt | Heure du résultat | Temps de calcul |
+|---|---|---|---|---|
+| 1 | Créer un jeu simple dans Streamlit | 10-09 15:53:31 | 10-09 15:53:46 | 15 s |
+| 2 | Régler les problèmes | 10-09 15:54:03 | 10-09 15:54:59 | 56 s |
+| 3 | Erreur de déploiement Streamlit Cloud | 10-09 15:57:55 | 10-09 15:58:35 | 40 s |
+| 4 | Simulateur de traction d'un kite sur un cargo | 10-09 16:02:48 | 10-09 16:17:17 | 14 min 29 s |
+| 5 | Bug de barre blanche et design plus clair | 10-09 16:26:34 | 10-09 16:33:02 | 6 min 28 s |
+| 6 | Mise en page compacte, jeu au clavier, pseudo et classement | 10-10 00:29:15 | 10-10 00:47:12 | 17 min 57 s |
+| 7 | Vues avant, mode pilote de kite, kite EPFL, équipes, pastel | 10-10 08:31:19 | 10-10 09:10:52 | 39 min 33 s |
+| 8 | Journal, inscription aux équipes, kites et lignes, briefing | 10-10 09:33:39 | 10-10 09:43:06 | 9 min 27 s |
+| 9 | Fluidité, repères en mer, pays à l'horizon, pilotage du cargo | 10-10 14:11:16 | 10-10 14:20:16 | 9 min 00 s |
+| 10 | Sites de jeux en ligne pour s'inspirer | 10-10 15:41:42 | 10-10 15:42:23 | 41 s |
+| 11 | Æther Swiss Kite Simulator : refonte complète | 10-10 16:47:06 | 10-10 17:49:13 | 1 h 02 min 07 s |
 
 ---
 
 ## 1. Créer un jeu simple dans Streamlit
-- **Date** : 2026-10-09 ≈ 15:50 (inclus dans le commit `d9a4e70`)
-- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Heure du prompt** : 2026-10-09 15:53:31 · **Heure du résultat** : 2026-10-09 15:53:46 · **Temps de calcul** : 15 s
+- **Commit** : inclus dans `d9a4e70`
 - **Demande** : modifier `Test.py`, relié à Streamlit, pour créer un jeu simple.
 - **Modifications** :
   - `Test.py` : jeu « Devine le nombre » (1 à 100, indices plus/moins, compteur d'essais, meilleur score, bouton nouvelle partie).
 
 ## 2. Régler les problèmes
-- **Date** : 2026-10-09 ≈ 15:54
-- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Heure du prompt** : 2026-10-09 15:54:03 · **Heure du résultat** : 2026-10-09 15:54:59 · **Temps de calcul** : 56 s
+- **Commit** : inclus dans `d9a4e70`
 - **Demande** : corriger les problèmes signalés par l'éditeur.
 - **Modifications** :
   - Installation de Streamlit dans Python Anaconda (l'import ne fonctionnait pas).
   - `.vscode/settings.json` : VS Code utilise l'interpréteur Anaconda.
 
 ## 3. Erreur de déploiement Streamlit Cloud
-- **Date** : 2026-10-09 15:58 (commit `d9a4e70`)
-- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Heure du prompt** : 2026-10-09 15:57:55 · **Heure du résultat** : 2026-10-09 15:58:35 · **Temps de calcul** : 40 s
+- **Commit** : `d9a4e70`
 - **Demande** : comprendre le message « not connected to a remote GitHub repository ».
 - **Modifications** :
   - Récupération du commit `.devcontainer` créé sur GitHub.
   - `.gitignore` (ignore `.vscode/`), commit du jeu et push sur `theodorejl/5-Code`.
 
 ## 4. Simulateur de traction d'un kite sur un cargo
-- **Date** : 2026-10-09 16:17 (commit `702be63`)
-- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Heure du prompt** : 2026-10-09 16:02:48 · **Heure du résultat** : 2026-10-09 16:17:17 · **Temps de calcul** : 14 min 29 s
+- **Commit** : `702be63`
 - **Demande** : jeu avec visuels soignés, potards (vitesse et cap du bateau, vitesse et orientation du vent), jauges colorées de gains fuel et CO₂, kite qui fait des 8, et montrer que baisser la vitesse apporte environ 2/3 des gains.
 - **Modifications** :
   - `kite_sim.html` : simulateur en HTML/JS (scène animée, kite en 8, fumée, boussole, potards rotatifs, 3 jauges, courbe CO₂ selon la vitesse, répartition du gain vitesse/kite, missions).
@@ -41,8 +57,8 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
   - `Test.py` intègre le simulateur. Ajout de `requirements.txt` et `.streamlit/config.toml`.
 
 ## 5. Bug de barre blanche et design plus clair
-- **Date** : 2026-10-09 16:32 (commit `a18fc8a`)
-- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Heure du prompt** : 2026-10-09 16:26:34 · **Heure du résultat** : 2026-10-09 16:33:02 · **Temps de calcul** : 6 min 28 s
+- **Commit** : `a18fc8a`
 - **Demande** : corriger la barre blanche qui apparaît en touchant les potards, et passer à un design clair, sérieux, style ingénieur.
 - **Modifications** :
   - Correction : plus de défilement interne dans le cadre du simulateur, hauteurs stabilisées.
@@ -50,8 +66,8 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
   - Le kite se déplace en douceur quand le cap ou le vent change. Graphique rendu plus lisible.
 
 ## 6. Mise en page compacte, jeu au clavier, pseudo et classement
-- **Date** : 2026-10-10 00:47 (commit `143d6cd`)
-- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Heure du prompt** : 2026-10-10 00:29:15 · **Heure du résultat** : 2026-10-10 00:47:12 · **Temps de calcul** : 17 min 57 s
+- **Commit** : `143d6cd`
 - **Demande** : tout voir sans défiler, jouer avec les flèches et la barre espace, tutoriel des touches, pseudo avant chaque partie, classement de tous les joueurs, design inspiré de theclimatebrink.com et aetherswisskite.ch.
 - **Modifications** :
   - Mise en page compacte qui tient sur un écran d'ordinateur.
@@ -61,8 +77,8 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
   - Design sombre inspiré des sites de référence.
 
 ## 7. Vues avant, mode pilote de kite, kite EPFL, équipes, pastel
-- **Date** : 2026-10-10 09:10 (commit `b7b8c6e`)
-- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Heure du prompt** : 2026-10-10 08:31:19 · **Heure du résultat** : 2026-10-10 09:10:52 · **Temps de calcul** : 39 min 33 s
+- **Commit** : `b7b8c6e`
 - **Demande** : vue vers l'avant dans le défi (cabine ou 3e personne), kite blanc avec le logo EPFL rouge partout, nouveau mode pour piloter le kite (fenêtre de vol, longueur de ligne de 25 à 1000 m, taille de kite de 5 à 500 m²), couleurs pastel plus claires, grosses vagues pendant les tempêtes, classement par équipe.
 - **Modifications** :
   - Vue avant en perspective : 3/4 arrière ou cabine avec console, touche V. Houle et moutons d'écume qui grossissent avec le vent, roulis et tangage.
@@ -72,8 +88,8 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
   - Thème pastel clair sur tout le site.
 
 ## 8. Journal, inscription aux équipes, kites et lignes, briefing
-- **Date** : 2026-10-10 09:42
-- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Heure du prompt** : 2026-10-10 09:33:39 · **Heure du résultat** : 2026-10-10 09:43:06 · **Temps de calcul** : 9 min 27 s
+- **Commit** : `bd07f1c`
 - **Demande** : tenir ce journal à jour à chaque prompt ; à l'inscription, pouvoir créer une équipe ou en rejoindre une via un menu déroulant ; mieux faire sentir la différence de maniabilité et de taille entre petits et grands kites et lignes ; mieux expliquer au début du jeu le but, les touches et les données affichées.
 - **Modifications** :
   - `JOURNAL.md` créé, reprenant les prompts depuis le premier.
@@ -84,8 +100,8 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
   - Correction : la vue 3e personne n'affiche plus à tort les vitres de la cabine avec une ligne courte. Au repos, le kite se stabilise vers 45° au lieu de rester au zénith.
 
 ## 9. Fluidité, repères en mer, pays à l'horizon, pilotage du cargo
-- **Date** : 2026-10-10 14:19
-- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Heure du prompt** : 2026-10-10 14:11:16 · **Heure du résultat** : 2026-10-10 14:20:16 · **Temps de calcul** : 9 min 00 s
+- **Commit** : `43f1d36`
 - **Demande** : mouvements du bateau plus fluides et moins rapides ; repères visuels en mer (bateaux de pêche, voiliers, navires militaires, îles) pour situer sa progression dans le défi ; dans le mode kite, voir à l'horizon les destinations selon le cap du cargo (tour Eiffel et Mont Blanc vers la France, désert et palmiers vers l'Afrique, statue de la Liberté vers New York…), qui grossissent quand on s'approche ; pouvoir diriger le cargo pour aller chercher plus ou moins de vent.
 - **Modifications** :
   - Fluidité : le cap, la vitesse et le vent affichés suivent les vraies valeurs en douceur (plus de saut de 5° à chaque appui). Roulis, tangage et pilonnement plus lents et plafonnés, faits de deux oscillations superposées.
@@ -98,7 +114,45 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
   - Briefing du mode kite complété : touches du cargo, carte des vents, lecture de l'horizon.
 
 ## 10. Sites de jeux en ligne pour s'inspirer
-- **Date** : 2026-10-10 15:42
-- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Heure du prompt** : 2026-10-10 15:41:42 · **Heure du résultat** : 2026-10-10 15:42:23 · **Temps de calcul** : 41 s
+- **Commit** : `424d9e6` (journal)
 - **Demande** : 10 sites de jeux ou simulateurs en ligne proposant une expérience similaire, comme sources d'inspiration.
 - **Modifications** : aucune modification du code. Liste fournie dans la conversation : En-ROADS, The Climate Game (Financial Times), PhET, Virtual Regatta, Sailonline, Windy, earth.nullschool.net, Ventusky, MarineTraffic, portfolio 3D de Bruno Simon.
+
+## 11. Æther Swiss Kite Simulator : refonte complète
+- **Heure du prompt** : 2026-10-10 16:47:06 · **Heure du résultat** : 2026-10-10 17:49:13 · **Temps de calcul** : 1 h 02 min 07 s
+- **Commit** : voir l'historique git (commit « Æther Swiss Kite Simulator »)
+- **Demande** : cahier des charges complet (rôle de développeur senior). Renommer le jeu, interface FR / EN / DE, page d'accueil, trois modes (bac à sable, traversée débutant d'environ 1 min, traversée expert d'environ 3 min), barge à gravier de 40 m de Villeneuve au Jet d'eau, météo rythmée identique pour tous, obstacles, cinématiques, podium, classements par période, page admin protégée, fantômes, grand kite en forme de parapente, physique prioritaire, schéma fonctionnel en PDF, 30 à 60 images/s, vérification finale.
+- **Modifications** :
+  - **Structure** : le jeu est découpé en `game/index.html` + 13 modules `game/js/*.js` + `game/leman_geo.json`, assemblés par Python. Services dans `app/` (`game.py`, `pages.py`, `storage.py`, `i18n.py`). `Test.py` ne fait plus que la navigation. L'ancien `kite_sim.html` est supprimé.
+  - **Langues** : boutons FR / EN / DE dans le jeu et dans Streamlit, synchronisés dans les deux sens (≈ 280 textes par langue, tutoriels compris).
+  - **Accueil** : scène 3D animée, texte de vision, trois cartes de mode illustrées avec tutoriel, classements.
+  - **Pages Streamlit** : Résultats (routes de chaque joueur colorées selon la vitesse), Suivi des prompts (ce journal + téléchargement du PDF), Admin.
+  - **Bac à sable** : barge vue de côté (Dents du Midi, Lavaux), kite parapente, explication du slow steaming conservée.
+  - **Traversées** : barre et gaz à la souris ou au clavier (ZQSD), kite sorti / rentré (Espace), vue V, fenêtre de vol F, traces T. En expert, le kite se pilote aux flèches : ← → pour virer, ↓ border, ↑ choquer.
+  - **Décor** : Léman à l'échelle (1 km = 60 m, relief ×1,3) : Chablais, Dents du Midi et Évian à gauche ; Chillon, Montreux, Lavaux, Lausanne, Nyon et Genève avec le Jet d'eau à droite, sans aucun nom écrit. Lumière du lever au coucher du soleil sur Genève.
+  - **Météo** : vents successifs (Vaudaire, Vent, Joran en tempête, Bise), 46 risées et des zones de pétole visibles comme sur windy.app, gîte pendant la tempête. Le scénario est le même pour tous. Obstacles : vapeurs CGN (+5 s), jet-skis (+2 s), rives (+1,5 s). Des dauphins accompagnent la barge.
+  - **Cinématiques** : compte à rebours 3-2-1 en travelling du lac vers le quai, où une pelle chargeait la barge. Arrivée en orbite au pied du Jet d'eau.
+  - **Classements** : podium, temps au millième, histogramme des temps, onglets jour / semaine / historique et joueurs / équipes. Les traces des 3 meilleurs servent de fantômes (touche T).
+  - **Stockage** : base SQLite (remplace `leaderboard.json`). Le serveur valide chaque course : un temps impossible est refusé et le total est recalculé.
+  - **Admin** : accès par mot de passe (`admin_password` dans `.streamlit/secrets.toml`, jamais publié). On peut renommer un joueur ou une équipe, détacher une équipe et supprimer des courses ou tout l'historique.
+  - **Kite** : grande aile en forme de parapente (caissons, profil, suspentes, logo EPFL).
+  - **Physique** : inertie de la barge chargée, traction dans la fenêtre de vol, vent apparent et cisaillement, surcharge et casse.
+  - **Performances** : qualité adaptative sur 3 niveaux pour tenir 30 à 60 images/s. La boucle d'animation résiste désormais à une erreur ponctuelle au lieu de se figer.
+  - **Documentation** : `docs/schema_fonctionnel.pdf` (4 pages : boucle VS Code ↔ GitHub ↔ Streamlit, architecture, modèles physiques, rendu et outils), produit par `tools/make_schema_pdf.py`.
+- **Vérification** (Chrome sans écran piloté automatiquement contre `streamlit run Test.py`) :
+  - traversée débutant complète en français (73,5 s + 5 s de pénalité) ;
+  - traversée expert complète en anglais (223,9 s + 15 s), avec le kite piloté aux flèches ;
+  - bac à sable ; allemand à 1366 × 768 ;
+  - changement de langue depuis le jeu puis depuis Streamlit ;
+  - classements (podium, équipes), fantômes, pause ;
+  - pages Résultats et Suivi des prompts ;
+  - admin : mot de passe refusé puis accepté, renommage, déconnexion ;
+  - tests de la base : validation, renommages, suppressions, purge.
+  - Aucune erreur JavaScript à la fin des tests.
+- **Corrections faites pendant la vérification** : mini-carte écrasée, textes qui débordaient dans la barre du bas, trait de vent qui traversait l'écran, gravier pixelisé en vue cabine, jauge du bac à sable qui figeait l'animation, temps de course trop courts acceptés par le serveur.
+- **Reste fragile** :
+  - Sur Streamlit Cloud, la base SQLite est remise à zéro à chaque redéploiement : il faudra une base externe pour un historique durable.
+  - Le chrono est calculé dans le navigateur. Le serveur refuse les temps impossibles, mais un tricheur averti pourrait envoyer un temps plausible.
+  - Les 60 images/s ont été mesurées sans écran : à confirmer sur un portable réel.
+  - Une traversée « normale » dure environ 70 s en débutant et 200 à 220 s en expert, un peu plus que les durées cibles.

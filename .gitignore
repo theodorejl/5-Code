@@ -1,3 +1,7 @@
 .vscode/
 .DS_Store
 leaderboard.json
+aether_scores.db
+aether_scores.db-*
+.streamlit/secrets.toml
+__pycache__/
