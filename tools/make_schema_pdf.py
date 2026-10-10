@@ -69,13 +69,13 @@ def page_macro(pdf):
             "JOURNAL.md mis à jour à chaque prompt.", "lilac")
     b = box(ax, 37.5, 44, 25, 14, "Git + GitHub",
             "Dépôt theodorejl/5-Code, branche main.\ngit commit puis git push\n(après accord de l'utilisateur).\n"
-            "secrets.toml et la base SQLite\nne sont jamais publiés (.gitignore).", "sky")
+            "La base SQLite locale\nn'est jamais publiée (.gitignore).", "sky")
     c = box(ax, 71, 38, 25, 20, "Streamlit Community Cloud",
             "Redéploie automatiquement à chaque\npush sur main (fichier principal Test.py).\n"
-            "Secrets : admin_password.\nServeur Python : pages, stockage SQLite,\nvalidation des scores.\n"
+            "Serveur Python : pages, stockage SQLite,\nvalidation des scores.\n"
             "Disque éphémère : la base repart à zéro\nà chaque redéploiement.", "mint")
     d = box(ax, 71, 9, 25, 22, "Navigateur des joueurs",
-            "Pages : Jeu · Résultats · Suivi des\nprompts · Admin (mot de passe).\n"
+            "Pages : Jeu · Résultats.\n"
             "Le jeu tourne dans une iframe\n(Canvas 2D, physique et rendu locaux,\n30 à 60 images/s).\n"
             "Langue FR / EN / DE partagée\nentre Streamlit et le jeu.", "peach")
     e = box(ax, 37.5, 9, 25, 22, "Données partagées",
@@ -104,11 +104,11 @@ def page_archi(pdf):
     fig, ax = page(pdf, "2. Architecture logicielle",
                    "Python sert les pages et garde les scores ; tout le jeu (physique, rendu, commandes) tourne dans le navigateur.", 2)
     ax.text(4, 57.5, "SERVEUR STREAMLIT (PYTHON)", fontsize=8.5, color=MUTED, fontweight="bold")
-    box(ax, 4, 44, 28, 12, "Test.py", "Configuration de la page, langue (?lang=),\nnavigation en haut : Jeu, Résultats,\nSuivi des prompts, Admin.", "lilac")
+    box(ax, 4, 44, 28, 12, "Test.py", "Configuration de la page, langue (?lang=),\nnavigation en haut : Jeu, Résultats.", "lilac")
     box(ax, 4, 28, 28, 14, "app/game.py", "Assemble index.html + leman_geo.json\n+ js/*.js (ordre des numéros) en un seul\ndocument, mis en cache selon les dates\nde modification. Monte le pont.", "lilac")
     box(ax, 4, 9, 28, 17, "app/storage · pages · i18n",
-        "SQLite : validation (pseudo 1–16, temps\nplausible : ≥ 35 s / ≥ 105 s, total recalculé\ncôté serveur), classements, fantômes, admin.\n"
-        "Résultats : routes colorées (matplotlib).\nAdmin : mot de passe (st.secrets, hmac).", "lilac", fs=7.9)
+        "SQLite : validation (pseudo 1–16, temps\nplausible : ≥ 35 s / ≥ 105 s, total recalculé\ncôté serveur), classements, fantômes.\n"
+        "Résultats : routes colorées (matplotlib).", "lilac", fs=7.9)
     ax.text(37, 57.5, "PONT", fontsize=8.5, color=MUTED, fontweight="bold")
     box(ax, 37, 28, 22, 28, "Pont aether_bridge",
         "st.components.v2\n\nPython → jeu :\n  data = {runs, ghosts, lang}\n  relayé par postMessage\n\n"
@@ -149,7 +149,7 @@ def page_physics(pdf):
         ("Entrées", "ZQSD / souris :\ngaz et barre\nFlèches (expert) :\npilotage du kite,\nborder / choquer\nEspace : kite", "rose"),
         ("Météo du Léman", "windAt(x, y, τ)\nvents successifs :\nVaudaire, Vent,\nJoran (tempête\nτ 0,47–0,63), Bise\n46 risées + pétoles", "sky"),
         ("Vent au kite", "cisaillement\nloi en 1/7 :\n$W_k = W\\,(z/10)^{1/7}$\nvent apparent\n$W_a$, angle awa", "sky"),
-        ("Kite 150 m²", "fenêtre de vol\n$w_f=\\cos\\theta\\cos\\varphi$\n$T=\\frac{1}{2}\\rho S C_L V_a^2$\nfinesse 4,2 · réglage\nsurcharge → casse", "lilac"),
+        ("Kite", "150 m² (expert :\n10, 25 ou 100 m²)\nfenêtre de vol\n$w_f=\\cos\\theta\\cos\\varphi$\n$T=\\frac{1}{2}\\rho S C_L V_a^2$\nfinesse 4,2 · réglage\nsurcharge → casse", "lilac"),
         ("Forces barge", "$F_m$ = gaz · 80 kN\n$R = 4{,}2\\,u|u|$ kN\ntraînée du vent\n$F_{kite}=T\\cos\\theta\\cos(az)$\n+ effort latéral", "mint"),
         ("Dynamique", "$M\\,\\dot u=\\Sigma F$\nlacet du 1er ordre\ndérive latérale\ngîte : ressort\namorti ω=1,5 ζ=0,3", "mint"),
         ("Course", "position, temps\nrive +1,5 s\nvapeur CGN +5 s\njet-ski +2 s\ncarburant, CO$_2$\n→ score + trace", "peach"),
@@ -166,16 +166,17 @@ def page_physics(pdf):
         ("Durée nominale (à 9,5 nd)", "≈ 60 s", "≈ 180 s", "temps compressé : 70,7 km réels"),
         ("Masse effective ressentie", "80 t", "190 t", "barge à gravier chargée, inertie"),
         ("Pilotage du kite", "automatique (8)", "manuel (flèches)", "fenêtre de vol, choquer / border"),
-        ("Tension max avant casse", "95 kN", "115 kN", "pénalités : +4 s / +3 s / +2 s"),
+        ("Kite · lignes", "150 m² · 200 m", "10/25/100 m² · 25/100/300 m", "petit = vif, grand = puissant"),
+        ("Tension max avant casse", "95 kN", "≈ 1,15 kN/m²", "pénalités : +4 s / +3 s / +2 s"),
         ("Taux de lacet max", "17 °/s", "9,5 °/s", "la barre n'agit qu'avec de la vitesse"),
         ("Moteur · résistance", "500 kW · 80 kN", "idem", "R = 4,2 kN/(m/s)² · u²"),
         ("Carburant · CO$_2$", "0,215 kg/kWh", "3,17 kg/kg", "CO$_2$ évité = poussée utile du kite"),
     ]
-    tx, ty, cw = 4, 37, [26, 15, 15, 36]
+    tx, ty, cw = 4, 37.5, [24, 15, 23, 30]
     for r, row in enumerate(rows):
         x = tx
         for c, cell in enumerate(row):
-            ax.text(x + 0.6, ty - r * 2.75, cell, fontsize=7.9, color=INK if r else MUTED, fontweight="bold" if r == 0 else "normal", va="top")
+            ax.text(x + 0.6, ty - r * 2.5, cell, fontsize=7.9, color=INK if r else MUTED, fontweight="bold" if r == 0 else "normal", va="top")
             x += cw[c]
         if r == 0:
             ax.plot([tx, tx + sum(cw)], [ty - 2.3, ty - 2.3], color="#dcd8ea", lw=0.8)
@@ -217,10 +218,10 @@ def page_visual(pdf):
         "Objets lointains ignorés (distance).", "peach", fs=7.9)
     box(ax, 4, 6.5, 92, 12.5, "Outils et liens",
         "VS Code + Claude Code (édition, tests) · Git / GitHub (dépôt theodorejl/5-Code) · Streamlit 1.65 (pages, st.navigation, "
-        "st.components.v2, st.iframe, st.secrets)\n"
+        "st.components.v2, st.iframe)\n"
         "Python : SQLite (scores), pandas (tableaux), matplotlib (routes colorées, ce PDF) · Navigateur : HTML, CSS, JavaScript, Canvas 2D, "
         "postMessage\n"
-        "Tests : Chrome sans écran + protocole DevTools (CDP) : parcours automatisés des 3 modes, 3 langues, classement et admin ; "
+        "Tests : Chrome sans écran + protocole DevTools (CDP) : parcours automatisés des 3 modes, 3 langues, 3 gréements et classement ; "
         "captures d'écran vérifiées.\n"
         "Inspirations : bruno-simon.com (physique ludique), ig.ft.com/climate-game (enjeu climat), windy.app (visualisation du vent).",
         "grey", fs=7.7)

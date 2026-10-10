@@ -28,6 +28,7 @@ function frame(now) {
 }
 function init() {
   initRaceControls();
+  initDash();
   initSandbox();
   initForms();
   initKeyboard();
@@ -43,7 +44,7 @@ function init() {
   // accès pour les tests automatisés uniquement (adresse contenant aetherdebug=1)
   try {
     const q = (window.parent && window.parent.location.search) || location.search;
-    if (/aetherdebug=1/.test(q)) window.__AE = { RACE, KS, PERF, QUALITY, BOARD, coursePoint, courseProject, COURSE_LEN, toggleKiteDeploy, goView, setLang };
+    if (/aetherdebug=1/.test(q)) window.__AE = { RACE, KS, kiteRig, PERF, QUALITY, BOARD, coursePoint, courseProject, COURSE_LEN, toggleKiteDeploy, goView, setLang };
   } catch { /* parent d'une autre origine */ }
 }
 init();

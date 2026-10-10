@@ -21,6 +21,7 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
 | 9 | Fluidité, repères en mer, pays à l'horizon, pilotage du cargo | 10-10 14:11:16 | 10-10 14:20:16 | 9 min 00 s |
 | 10 | Sites de jeux en ligne pour s'inspirer | 10-10 15:41:42 | 10-10 15:42:23 | 41 s |
 | 11 | Æther Swiss Kite Simulator : refonte complète | 10-10 16:47:06 | 10-10 17:49:13 | 1 h 02 min 07 s |
+| 12 | Pages retirées, gréement expert, caméra, tableau de bord | 10-10 18:09:19 | 10-10 21:44:53 | 10 min 54 s |
 
 ---
 
@@ -156,3 +157,28 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
   - Le chrono est calculé dans le navigateur. Le serveur refuse les temps impossibles, mais un tricheur averti pourrait envoyer un temps plausible.
   - Les 60 images/s ont été mesurées sans écran : à confirmer sur un portable réel.
   - Une traversée « normale » dure environ 70 s en débutant et 200 à 220 s en expert, un peu plus que les durées cibles.
+
+## 12. Pages retirées, gréement expert au choix, caméra qui suit le kite, tableau de bord
+- **Heure du prompt** : 2026-10-10 18:09:19 · **Heure du résultat** : 2026-10-10 21:44:53 · **Temps de calcul** : 10 min 54 s (travail interrompu de 18:18 à 21:42, relancé par « fini ce que tu faisais » ; l'attente n'est pas comptée)
+- **Demande** : retirer la page de suivi des prompts et l'administration ; en expert, proposer 3 tailles de kite (10, 25, 100 m²) et 3 longueurs de lignes (25, 100, 300 m) ; adapter la vue 3e personne pour voir le kite ; un tableau de données plus coloré sous la scène, avec potards et jauges.
+- **Modifications** :
+  - **Pages** : l'application n'a plus que Jeu et Résultats. Les pages Suivi des prompts et Admin sont supprimées, avec leurs textes et les fonctions d'administration de la base. Le mot de passe local n'existe plus. Ce fichier reste tenu à jour dans le dépôt.
+  - **Gréement expert** : dans l'encadré du kite, choix de la surface (10, 25 ou 100 m²) et des lignes (25, 100 ou 300 m), mémorisé d'une partie à l'autre. On ne peut changer qu'avec le kite rentré.
+    - La traction est proportionnelle à la surface. La tension de rupture dépend de la taille (≈ 1,15 kN par m²).
+    - Un petit kite vire plus vite (×1,3 à 10 m², ×0,66 à 100 m²).
+    - Des lignes courtes font traverser la fenêtre plus vite. Des lignes longues montent chercher un vent plus fort (loi en 1/7).
+    - La taille de l'aile et la longueur des lignes se voient à l'écran. Le gréement apparaît sur l'écran d'arrivée.
+  - **Caméra** : en expert, la vue 3e personne recule, pivote vers le côté du kite et dézoome automatiquement pour garder la barge et l'aile à l'écran, même avec 300 m de lignes.
+  - **Tableau de bord** : la barre du bas devient 10 instruments colorés :
+    - chrono avec anneau de progression ;
+    - compteur de vitesse ;
+    - potard des gaz ;
+    - cadran du vent par rapport à la barge ;
+    - jauge de tension avec zones orange et rouge ;
+    - anneau de la part du kite dans la poussée ;
+    - barres de CO₂ émis et évité ;
+    - inclinomètre de gîte ;
+    - pastilles de pénalités ;
+    - courbe des images par seconde.
+  - **PDF** : schéma fonctionnel mis à jour (pages retirées, gréement expert).
+- **Vérification** : traversée expert en français puis en allemand (1366 × 768) avec les gréements 10 m²/25 m, 25/100, 100/300, 10/100 et 100/25. Le kite reste pilotable par un pilote automatique simple : il vole 65 à 97 % du temps. Le changement de gréement est bien refusé kite sorti. La navigation n'affiche plus que Jeu et Résultats. Aucune erreur JavaScript.

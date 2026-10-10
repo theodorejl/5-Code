@@ -112,17 +112,27 @@
   .helm .rail { position: relative; height: 16px; margin-top: 4px; border-radius: 8px; background: linear-gradient(90deg, #cfe0f5, #f3f1fb 50%, #cfe0f5); cursor: ew-resize; }
   .helm .rail::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--dim); }
   .helm .knob { position: absolute; top: 50%; width: 30px; height: 24px; margin: -12px 0 0 -15px; border-radius: 7px; background: #fff; border: 2px solid var(--accent); box-shadow: 0 2px 6px rgba(60, 50, 120, .25); }
-  .kitebox { position: absolute; right: 14px; bottom: 16px; width: 214px; padding: 8px 10px; z-index: 3; }
+  .kitebox { position: absolute; right: 14px; bottom: 16px; width: 232px; padding: 8px 10px; z-index: 3; }
   .kitebox .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 4px; font-size: 11.5px; }
   .kitebox .bar { position: relative; height: 8px; border-radius: 4px; background: #efebf7; overflow: hidden; flex: 1; }
   .kitebox .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
   .kitebtn { width: 100%; margin-top: 6px; justify-content: center; }
-  .databar { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 6px; padding: 8px 10px; }
-  .databar div { padding: 3px 6px; border-right: 1px solid var(--line); min-width: 0; }
-  .databar small, .databar b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .databar div:last-child { border-right: 0; }
-  .databar small { display: block; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-  .databar b { display: block; font-family: var(--mono); font-size: 13px; font-weight: 600; }
+  .kitebox .rig { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 5px; font-size: 11px; }
+  .kitebox .rig .seg { padding: 2px; }
+  .kitebox .rig .seg button { padding: 3px 6px; font-size: 9px; letter-spacing: .02em; text-transform: none; }
+  .dash { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; padding: 6px; }
+  .inst { display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 10px; min-width: 0; border: 1px solid rgba(255, 255, 255, .8); }
+  .inst canvas { width: 46px; height: 46px; flex: none; display: block; }
+  .inst .tx { min-width: 0; }
+  .inst small, .inst b, .inst em { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .inst small { font-family: var(--mono); font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .inst b { font-family: var(--mono); font-size: 13.5px; font-weight: 600; }
+  .inst em { font-style: normal; font-size: 10px; color: var(--muted); }
+  .t-lilac { background: linear-gradient(135deg, #f3f0ff, #ebe6fd); } .t-mint { background: linear-gradient(135deg, #effaf5, #e1f5ec); }
+  .t-sky { background: linear-gradient(135deg, #eff5fc, #e2edf9); } .t-peach { background: linear-gradient(135deg, #fff4ec, #fde8dc); }
+  .t-sand { background: linear-gradient(135deg, #fefaea, #fbf1d3); } .t-rose { background: linear-gradient(135deg, #fff0f4, #fce2ea); }
+  .t-grey { background: linear-gradient(135deg, #f7f6fb, #eeedf5); }
+  @media (max-width: 1350px) { .dash { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 
   .toasts { position: absolute; left: 50%; top: 96px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; z-index: 20; width: min(480px, 90%); }
   .toast { padding: 8px 14px; font-size: 12.5px; font-weight: 500; animation: tin .25s ease-out; text-align: center; }
@@ -450,19 +460,7 @@
   <!-- ===================== TRAVERSÉE ===================== -->
   <section class="only-race" id="viewRace" style="display:flex;flex-direction:column;gap:8px">
     <div class="race-slot" id="raceSlot"></div>
-    <div class="panel databar" id="databar">
-      <div><small data-i="d_time"></small><b id="dTime">–</b></div>
-      <div><small data-i="d_progress"></small><b id="dProg">–</b></div>
-      <div><small data-i="d_speed"></small><b id="dSpeed">–</b></div>
-      <div><small data-i="d_engine"></small><b id="dEngine">–</b></div>
-      <div><small data-i="d_wind"></small><b id="dWind">–</b></div>
-      <div><small data-i="d_kite_bar"></small><b id="dKite">–</b></div>
-      <div><small data-i="d_co2"></small><b id="dCo2">–</b></div>
-      <div><small data-i="d_saved"></small><b id="dSaved">–</b></div>
-      <div><small data-i="d_heel"></small><b id="dHeel">–</b></div>
-      <div><small data-i="d_pen"></small><b id="dPen">–</b></div>
-      <div><small>FPS</small><b id="dFps">–</b></div>
-    </div>
+    <div class="panel dash" id="databar"></div>
   </section>
 
   <!-- Scène 3D partagée : déplacée entre l'accueil (héros) et la traversée -->
@@ -495,6 +493,8 @@
     <div class="glass helm only-race" id="helm"><small data-i="helm"></small><div class="rail" id="helmRail"><div class="knob" id="helmKnob"></div></div></div>
     <div class="glass kitebox only-race" id="kitebox">
       <small data-i="kite"></small>
+      <div class="rig only-expert"><span data-i="rig_area"></span><div class="seg small"><button data-rig="area" data-v="10">10 m²</button><button data-rig="area" data-v="25">25 m²</button><button data-rig="area" data-v="100">100 m²</button></div></div>
+      <div class="rig only-expert"><span data-i="rig_line"></span><div class="seg small"><button data-rig="line" data-v="25">25 m</button><button data-rig="line" data-v="100">100 m</button><button data-rig="line" data-v="300">300 m</button></div></div>
       <div class="row"><span data-i="kb_tension"></span><div class="bar"><i id="kbTension"></i></div></div>
       <div class="row only-expert"><span data-i="kb_trim"></span><div class="bar"><i id="kbTrim" style="background:linear-gradient(90deg,#bfeee0,#9b87f5)"></i></div></div>
       <div class="row"><span data-i="kb_zone"></span><b id="kbZone" style="font-family:var(--mono)">–</b></div>

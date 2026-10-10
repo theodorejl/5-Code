@@ -1,6 +1,5 @@
-"""Pages secondaires : résultats (routes colorées), suivi des prompts, administration."""
+"""Page des résultats : routes de chaque joueur colorées selon la vitesse."""
 import datetime as dt
-import hmac
 import json
 import math
 from pathlib import Path
@@ -16,7 +15,7 @@ from matplotlib.collections import LineCollection  # noqa: E402
 from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
 
 from app import storage  # noqa: E402
-from app.i18n import PURGE_WORD, lang, t  # noqa: E402
+from app.i18n import t  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 TZ = ZoneInfo("Europe/Zurich")
@@ -106,112 +105,3 @@ def results_page():
         t("col_coll"): r["collisions"], t("col_date"): dt.datetime.fromtimestamp(r["ts"], TZ).strftime("%Y-%m-%d %H:%M"),
     } for i, r in enumerate(runs)])
     st.dataframe(df, hide_index=True, width="stretch", column_config={t("col_total"): st.column_config.NumberColumn(format="%.3f")})
-
-
-def journal_page():
-    st.title(t("jr_title"))
-    pdf = ROOT / "docs" / "schema_fonctionnel.pdf"
-    if pdf.exists():
-        st.download_button(t("jr_pdf"), pdf.read_bytes(), file_name="schema_fonctionnel_aether.pdf", mime="application/pdf")
-    else:
-        st.info(t("jr_nopdf"))
-    st.markdown((ROOT / "JOURNAL.md").read_text(encoding="utf-8"))
-
-
-def _admin_password():
-    try:
-        return st.secrets.get("admin_password")
-    except Exception:  # pas de fichier secrets.toml
-        return None
-
-
-def _secs(x):
-    return f"{x:.3f}" if x is not None else "—"
-
-
-def _flash(msg):
-    st.session_state["ad_msg"] = msg
-    st.rerun()
-
-
-def admin_page():
-    st.title(t("ad_title"))
-    if st.session_state.get("ad_msg"):
-        st.success(st.session_state.pop("ad_msg"))
-    secret = _admin_password()
-    if not secret:
-        st.warning(t("ad_nosecret"))
-        return
-    if not st.session_state.get("admin_ok"):
-        with st.form("admin_login"):
-            pwd = st.text_input(t("ad_pwd"), type="password")
-            if st.form_submit_button(t("ad_login")):
-                if hmac.compare_digest(pwd.encode(), str(secret).encode()):
-                    st.session_state["admin_ok"] = True
-                    st.rerun()
-                st.error(t("ad_bad"))
-        return
-    if st.button(t("ad_logout")):
-        st.session_state["admin_ok"] = False
-        st.rerun()
-    st.caption(t("ad_storage"))
-    runs, players, teams = storage.all_runs(), storage.players(), storage.teams()
-    m1, m2, m3 = st.columns(3)
-    m1.metric(t("ad_runs"), len(runs))
-    m2.metric(t("ad_players"), len(players))
-    m3.metric(t("ad_teams"), len(teams))
-    tab_p, tab_t, tab_r, tab_d = st.tabs([t("ad_players"), t("ad_teams"), t("ad_runs"), t("ad_danger")])
-    fmt_ts = lambda ts: dt.datetime.fromtimestamp(ts, TZ).strftime("%Y-%m-%d %H:%M") if ts else ""
-    with tab_p:
-        st.dataframe(pd.DataFrame([{t("col_name"): p["name"], t("col_team"): p["team"] or t("none"), t("col_runs"): p["runs"],
-                                    t("col_best_b"): _secs(p["best_beginner"]), t("col_best_e"): _secs(p["best_expert"]), t("col_date"): fmt_ts(p["last_ts"])} for p in players]),
-                     hide_index=True, width="stretch")
-        if players:
-            labels = [f"{p['name']} · {p['team'] or t('none')}" for p in players]
-            i = st.selectbox(t("ad_pick_player"), range(len(players)), format_func=lambda k: labels[k], key="ad_player")
-            p = players[i]
-            c1, c2 = st.columns(2)
-            new_name = c1.text_input(t("ad_new_name"), value=p["name"], max_chars=16, key=f"ad_nn_{i}")
-            new_team = c2.text_input(t("ad_new_team"), value=p["team"], max_chars=20, key=f"ad_nt_{i}")
-            if st.button(t("ad_rename"), key="ad_rename_btn"):
-                _flash(t("ad_done", n=storage.rename_player(p["name"], p["team"], new_name, new_team)))
-            ok = st.checkbox(t("ad_confirm"), key=f"ad_conf_p_{i}")
-            if st.button(t("ad_delete_hist"), disabled=not ok, type="primary", key="ad_del_player"):
-                _flash(t("ad_deleted", n=storage.delete_player(p["name"], p["team"])))
-    with tab_t:
-        st.dataframe(pd.DataFrame([{t("col_team"): x["team"], t("col_players"): x["players"], t("col_runs"): x["runs"], t("col_date"): fmt_ts(x["last_ts"])} for x in teams]),
-                     hide_index=True, width="stretch")
-        if teams:
-            j = st.selectbox(t("ad_pick_team"), range(len(teams)), format_func=lambda k: teams[k]["team"], key="ad_team")
-            team = teams[j]["team"]
-            new = st.text_input(t("ad_new_team"), value=team, max_chars=20, key=f"ad_tn_{j}")
-            c1, c2 = st.columns(2)
-            if c1.button(t("ad_rename_team"), key="ad_rename_team_btn"):
-                _flash(t("ad_done", n=storage.rename_team(team, new)))
-            if c2.button(t("ad_detach"), key="ad_detach_btn"):
-                _flash(t("ad_done", n=storage.rename_team(team, "")))
-            ok = st.checkbox(t("ad_confirm"), key=f"ad_conf_t_{j}")
-            if st.button(t("ad_delete_team"), disabled=not ok, type="primary", key="ad_del_team"):
-                _flash(t("ad_deleted", n=storage.delete_team_runs(team)))
-    with tab_r:
-        st.dataframe(pd.DataFrame([{"id": r["id"], t("col_mode"): t(r["mode"]), t("col_name"): r["name"], t("col_team"): r["team"] or t("none"),
-                                    t("col_total"): r["total_s"], t("col_coll"): r["collisions"], t("col_date"): fmt_ts(r["ts"])} for r in runs]),
-                     hide_index=True, width="stretch")
-        ids = st.multiselect(t("ad_pick_runs"), [r["id"] for r in runs],
-                             format_func=lambda i: next(f"{r['name']} · {t(r['mode'])} · {r['total_s']:.3f} s · {fmt_ts(r['ts'])}" for r in runs if r["id"] == i), key="ad_runs_sel")
-        if st.button(t("ad_delete_runs"), disabled=not ids, type="primary", key="ad_del_runs"):
-            _flash(t("ad_deleted", n=storage.delete_runs(ids)))
-    with tab_d:
-        word = PURGE_WORD[lang()]
-        c1, c2 = st.columns(2)
-        with c1:
-            st.subheader(t("ad_purge_mode"))
-            mode = st.segmented_control(t("mode"), ["beginner", "expert"], format_func=t, default="beginner", key="ad_purge_mode") or "beginner"
-            typed = st.text_input(t("ad_type"), key="ad_type_mode")
-            if st.button(t("ad_purge"), disabled=typed != word, type="primary", key="ad_purge_mode_btn"):
-                _flash(t("ad_deleted", n=storage.purge(mode)))
-        with c2:
-            st.subheader(t("ad_purge_all"))
-            typed2 = st.text_input(t("ad_type"), key="ad_type_all")
-            if st.button(t("ad_purge"), disabled=typed2 != word, type="primary", key="ad_purge_all_btn"):
-                _flash(t("ad_deleted", n=storage.purge()))

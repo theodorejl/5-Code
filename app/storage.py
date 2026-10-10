@@ -1,7 +1,7 @@
 """Stockage des courses (SQLite).
 
 Remplace l'ancien fichier leaderboard.json : une base SQLite permet les classements par période,
-garde le tracé de chaque course et sert la page d'administration. Les écritures passent par un verrou
+et garde le tracé de chaque course (page Résultats et fantômes). Les écritures passent par un verrou
 pour rester sûres quand plusieurs joueurs terminent en même temps.
 
 Sur Streamlit Community Cloud, le disque est remis à zéro à chaque redéploiement : pour un historique
@@ -130,59 +130,3 @@ def ghosts():
 # ------------------------------------------------------------------
 #  Administration
 # ------------------------------------------------------------------
-def players():
-    with _conn() as c:
-        rows = c.execute(
-            "SELECT name, team, COUNT(*) AS runs, MIN(CASE WHEN mode='beginner' THEN total_s END) AS best_beginner, "
-            "MIN(CASE WHEN mode='expert' THEN total_s END) AS best_expert, MAX(ts) AS last_ts "
-            "FROM runs GROUP BY lower(name), lower(team) ORDER BY lower(team), lower(name)").fetchall()
-    return [dict(r) for r in rows]
-
-
-def teams():
-    with _conn() as c:
-        rows = c.execute(
-            "SELECT team, COUNT(DISTINCT lower(name)) AS players, COUNT(*) AS runs, MAX(ts) AS last_ts "
-            "FROM runs WHERE team != '' GROUP BY lower(team) ORDER BY lower(team)").fetchall()
-    return [dict(r) for r in rows]
-
-
-def all_runs():
-    with _conn() as c:
-        rows = c.execute("SELECT id, mode, name, team, time_s, pen_s, total_s, collisions, ts FROM runs ORDER BY ts DESC").fetchall()
-    return [dict(r) for r in rows]
-
-
-def _write(sql, params):
-    with _LOCK, _conn() as c:
-        return c.execute(sql, params).rowcount
-
-
-def rename_player(name, team, new_name, new_team):
-    new_name, new_team = clean_text(new_name, 16), clean_text(new_team, 20)
-    if not new_name:
-        return 0
-    return _write("UPDATE runs SET name = ?, team = ? WHERE lower(name) = lower(?) AND lower(team) = lower(?)", (new_name, new_team, name, team))
-
-
-def delete_player(name, team):
-    return _write("DELETE FROM runs WHERE lower(name) = lower(?) AND lower(team) = lower(?)", (name, team))
-
-
-def rename_team(team, new_team):
-    return _write("UPDATE runs SET team = ? WHERE lower(team) = lower(?)", (clean_text(new_team, 20), team))
-
-
-def delete_team_runs(team):
-    return _write("DELETE FROM runs WHERE lower(team) = lower(?)", (team,))
-
-
-def delete_runs(ids):
-    with _LOCK, _conn() as c:
-        return sum(c.execute("DELETE FROM runs WHERE id = ?", (i,)).rowcount for i in ids)
-
-
-def purge(mode=None):
-    if mode in MODES:
-        return _write("DELETE FROM runs WHERE mode = ?", (mode,))
-    return _write("DELETE FROM runs", ())

@@ -57,12 +57,13 @@ function stepRace(dt) {
   if (left || right) { RACE.mouseHelm = false; RACE.rudder = clamp(RACE.rudder + ((right ? 1 : 0) - (left ? 1 : 0)) * 3.2 * dt, -1, 1); }
   else if (!RACE.mouseHelm) RACE.rudder -= RACE.rudder * damp(3.5, dt);
   // kite
-  const altReal = 40 + KITE.LREAL * Math.sin(rad(clamp(KS.el || 30, 5, 85)));
+  const rig = kiteRig();
+  const altReal = 40 + rig.L * Math.sin(rad(clamp(KS.el || 30, 5, 85)));
   const air = kiteAir(w.kn, w.from, B.hdg, B.u, altReal);
   if (RACE.mode === "expert") {
     const steer = (kb.has("ArrowRight") ? 1 : 0) - (kb.has("ArrowLeft") ? 1 : 0);
     const trim = (kb.has("ArrowDown") ? 1 : 0) - (kb.has("ArrowUp") ? 1 : 0);   // ↓ border (puissance) · ↑ choquer
-    kiteStepManual(dt, air, steer, trim, C.TMAX);
+    kiteStepManual(dt, air, steer, trim, rig);
   } else kiteStepAuto(dt, air, C.TMAX);
   RACE.air = air;
   // forces longitudinales (kN) et accélération (masse effective en tonnes → m/s²)
@@ -71,6 +72,7 @@ function stepRace(dt) {
   const windSide = 0.5 * RHO * BARGE.AF * 1.4 * deck.Wa * deck.Wa * Math.sin(rad(deck.awa)) / 1000;
   const Fe = RACE.throttle * BARGE.FE * (1 - 0.18 * clamp(B.u / 5, 0, 1));
   const R = BARGE.CD * B.u * Math.abs(B.u);
+  RACE.Fe = Fe;
   const acc = (Fe + KS.fwd - R - windDrag) / C.M;
   B.u = Math.max(-1.5, B.u + acc * dt);
   // lacet : la barre n'agit qu'avec de la vitesse ; le kite tire un peu l'étrave sous le vent
@@ -146,15 +148,18 @@ function finishRace() {
   const total = RACE.t + RACE.pen;
   RACE.result = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`, mode: RACE.mode, name: PLAYER.name, team: PLAYER.team,
     time: Math.round(RACE.t * 1000) / 1000, pen: Math.round(RACE.pen * 1000) / 1000, total: Math.round(total * 1000) / 1000,
-    co2: Math.round(RACE.fuel * BARGE.CO2F * 10) / 10, saved: Math.round(RACE.saved * 10) / 10, coll: RACE.coll, track: RACE.track };
+    co2: Math.round(RACE.fuel * BARGE.CO2F * 10) / 10, saved: Math.round(RACE.saved * 10) / 10, coll: RACE.coll, track: RACE.track,
+    rig: RACE.mode === "expert" ? `${RIG.area} m² · ${RIG.line} m` : null };
   submitScore(RACE.result);
   toast(T("finish_toast", { t: fmtTime(total) }), "good", null);
 }
 
 // ---------------- Caméras ----------------
+// Cadrage automatique du kite en 3e personne : la caméra recule, monte et pivote pour garder la barge et l'aile à l'écran
+const FRAME = { wt: 0, off: 0, extra: 0, elK: 20, half: 50 };
 function chasePose() {
-  const B = RACE.boat, C = cfg(), yaw = RACE.cam.yaw;
-  const x = B.x - Math.sin(rad(yaw)) * C.camD, y = B.y - Math.cos(rad(yaw)) * C.camD, z = C.camH + B.heave * 0.5;
+  const B = RACE.boat, C = cfg(), yaw = RACE.cam.yaw, D = C.camD + FRAME.extra;
+  const x = B.x - Math.sin(rad(yaw)) * D, y = B.y - Math.cos(rad(yaw)) * D, z = C.camH + FRAME.extra * 0.22 + B.heave * 0.5;
   return { x, y, z, yaw };
 }
 function placeChaseCam(snap) {
@@ -185,7 +190,11 @@ function computeCamera(dt, w, h) {
     half = 56;
     return makeCam(w, h, p[0], p[1], p[2], B.hdg, -2 + deg(B.pitchR), B.heelR, half);
   }
-  RACE.cam.yaw = angLerp(RACE.cam.yaw, B.hdg, damp(2.2, dt));
+  const rig = kiteRig(), follow = RACE.mode === "expert" && RACE.state === "run" && KS.dep > 0.15 && KS.state !== "crashed" ? 1 : 0;
+  FRAME.wt = lerp(FRAME.wt, follow, damp(1.4, dt));
+  FRAME.off = lerp(FRAME.off, follow * clamp(norm180(KS.azRel || 0) * 0.45, -38, 38), damp(1.1, dt));
+  FRAME.extra = lerp(FRAME.extra, follow * rig.Lvis * 0.75, damp(1.3, dt));
+  RACE.cam.yaw = angLerp(RACE.cam.yaw, B.hdg + FRAME.off, damp(2.2, dt));
   const cp = chasePose();
   RACE.cam.x = lerp(RACE.cam.x, cp.x, damp(7, dt)); RACE.cam.y = lerp(RACE.cam.y, cp.y, damp(7, dt)); RACE.cam.z = lerp(RACE.cam.z, cp.z, damp(4, dt));
   ({ x, y, z, yaw } = RACE.cam);
@@ -200,7 +209,16 @@ function computeCamera(dt, w, h) {
     pitch = lookPitch({ x, y, z }, lerp(START.x, tx, e), lerp(START.y, ty, e), lerp(0, 3, e), h, (w / 2) / half, lerp(0.55, 0.62, e));
     return makeCam(w, h, x, y, z, yaw, pitch, 0, half);
   }
-  pitch = lookPitch({ x, y, z }, tx, ty, 3, h, (w / 2) / half, 0.62);
+  // hauteur angulaire du kite vue de la caméra (lissée pour ne pas suivre chaque huit)
+  const A = bargeToWorld(B, ...BARGE_ANCHOR), azW = rad(B.hdg + (KS.azRel || 0)), elW = rad(KS.el || 30);
+  const Lk = rig.Lvis * KS.dep, kx = A[0] + Lk * Math.cos(elW) * Math.sin(azW), ky = A[1] + Lk * Math.cos(elW) * Math.cos(azW), kz = A[2] + Lk * Math.sin(elW);
+  FRAME.elK = lerp(FRAME.elK, deg(Math.atan2(kz - z, Math.hypot(kx - x, ky - y))), damp(2.5, dt));
+  const elB = deg(Math.atan2(3 - z, Math.hypot(tx - x, ty - y)));
+  // champ vertical nécessaire : barge aux 3/4 bas de l'écran, kite à 15 % du haut ; on dézoome au besoin
+  const fracB = 0.62 + 0.06 * FRAME.wt, needHalf = clamp((FRAME.elK - elB) / (fracB - 0.1) * (w / 2) / h, 50, 88);
+  FRAME.half = lerp(FRAME.half, lerp(50, needHalf, FRAME.wt), damp(2, dt));
+  half = FRAME.half;
+  pitch = lookPitch({ x, y, z }, tx, ty, 3, h, (w / 2) / half, fracB);
   if (RACE.shake > 0) { yaw += (Math.random() - 0.5) * RACE.shake * 1.5; pitch += (Math.random() - 0.5) * RACE.shake; }
   roll = B.heelR * 0.15;
   return makeCam(w, h, x, y, z, yaw, pitch, roll, half);
@@ -349,8 +367,8 @@ function drawSmoke(ctx, cam, dt, ex) {
 }
 function drawRaceKite(ctx, cam, dt, info) {
   const B = RACE.boat, air = RACE.air || { down: 0 };
-  const A = info.anchor, Lv = KITE.LVIS * Math.max(KS.dep, 0.04);
-  if (RACE.showWindow && RACE.mode !== "attract" && RACE.state !== "intro") drawWindow3D(ctx, cam, A, B.hdg + air.down, KITE.LVIS);
+  const rig = kiteRig(), A = info.anchor, Lv = rig.Lvis * Math.max(KS.dep, 0.04);
+  if (RACE.showWindow && RACE.mode !== "attract" && RACE.state !== "intro") drawWindow3D(ctx, cam, A, B.hdg + air.down, rig.Lvis);
   const azW = B.hdg + KS.azRel, el = KS.state === "crashed" ? 0 : KS.el;
   const dir = [Math.cos(rad(el)) * Math.sin(rad(azW)), Math.cos(rad(el)) * Math.cos(rad(azW)), Math.sin(rad(el))];
   const kp = [A[0] + dir[0] * Lv, A[1] + dir[1] * Lv, A[2] + dir[2] * Lv];
@@ -365,7 +383,7 @@ function drawRaceKite(ctx, cam, dt, info) {
   if (KS.dep < 0.03) return;
   const p = cam.p(...kp);
   if (Math.abs(p[3]) > 120) return;
-  const tension = clamp(KS.T / cfg().TMAX, 0, 1.4);
+  const tension = clamp(KS.T / rig.tmax, 0, 1.4);
   ctx.strokeStyle = tension > 0.85 ? `rgba(208,74,108,${0.6 + 0.4 * Math.sin(performance.now() / 50)})` : "rgba(40,50,70,.65)";
   ctx.lineWidth = 1 + tension * 1.2;
   ctx.beginPath(); ctx.moveTo(info.anchorScreen[0], info.anchorScreen[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
@@ -374,12 +392,12 @@ function drawRaceKite(ctx, cam, dt, info) {
   if (prev) { const vx = p[0] - prev[0], vy = p[1] - prev[1]; if (Math.hypot(vx, vy) > 0.3) target = clamp(Math.atan2(vx, -vy), -1.1, 1.1); }
   RACE.kiteRoll = lerp(RACE.kiteRoll || 0, target, damp(6, dt));
   RACE.lastKitePx = [p[0], p[1]];
-  const span = clamp(cam.k * 57.3 * 24 / Math.max(p[2], 1), 26, 260) * (0.4 + 0.6 * KS.dep);
+  const span = clamp(cam.k * 57.3 * 24 * Math.sqrt(rig.area / KITE.area) / Math.max(p[2], 1), 16, 260) * (0.4 + 0.6 * KS.dep);   // taille ∝ √surface
   if (KS.state === "crashed") { ctx.fillStyle = "rgba(255,255,255,.85)"; for (let i = 0; i < 7; i++) { ctx.beginPath(); ctx.arc(p[0] + Math.sin(i * 2.3 + performance.now() / 160) * span * 0.2, p[1] - Math.abs(Math.cos(i + performance.now() / 200)) * span * 0.15, 2.4, 0, Math.PI * 2); ctx.fill(); } return; }
   drawParagliderFront(ctx, p[0], p[1], span, RACE.kiteRoll, RACE.mode === "expert" ? KS.trim : 1);
 }
 function trailPt(cam, A, [az, el]) {
-  const L = KITE.LVIS, p = cam.p(A[0] + L * Math.cos(rad(el)) * Math.sin(rad(az)), A[1] + L * Math.cos(rad(el)) * Math.cos(rad(az)), A[2] + L * Math.sin(rad(el)));
+  const L = kiteRig().Lvis, p = cam.p(A[0] + L * Math.cos(rad(el)) * Math.sin(rad(az)), A[1] + L * Math.cos(rad(el)) * Math.cos(rad(az)), A[2] + L * Math.sin(rad(el)));
   return Math.abs(p[3]) > 120 ? null : p;
 }
 function drawCabin(ctx, w, h, storm, t) {
@@ -415,18 +433,8 @@ function updateRaceHud(dt) {
   $("hKite").innerHTML = `${fmt0(KS.fwd)}<i>kN</i>`;
   $("hProg").textContent = `${fmt0(clamp(RACE.f, 0, 1) * 100)} %`;
   $("hProgFill").style.width = `${clamp(RACE.f, 0, 1) * 100}%`;
-  $("dTime").textContent = `${fmtClock(RACE.t)}${RACE.pen ? ` +${fmt1(RACE.pen)}` : ""}`;
-  $("dProg").textContent = `${fmt0(clamp(RACE.f, 0, 1) * 100)} % · ${fmt1((1 - clamp(RACE.f, 0, 1)) * COURSE_LEN / SCALE)} km`;
-  $("dSpeed").textContent = `${fmt1(kn)} ${T("u_kn")}`;
-  $("dEngine").textContent = `${fmt0(RACE.throttle * 100)} % · ${fmt0(Math.max(0, RACE.throttle) * BARGE.PMAX)} kW`;
-  $("dWind").textContent = `${fmt0(w.kn)} ${T("u_kn")} ${cardinal(w.from)}`;
-  $("dKite").textContent = `${fmt0(KS.T)} · ${fmt0(KS.fwd)} kN`;
-  $("dCo2").textContent = `${fmt0(RACE.fuel * BARGE.CO2F)} kg`;
-  $("dSaved").textContent = `${fmt0(RACE.saved)} kg`;
-  $("dHeel").textContent = `${fmt1(Math.abs(deg(B.heelR)))}°`;
-  $("dPen").textContent = `${fmt1(RACE.pen)} s · ${RACE.coll}`;
-  $("dFps").textContent = `${fmt0(PERF.fps)} · Q${QUALITY.level}`;
-  const tm = cfg().TMAX;
+  updateDash();
+  const tm = kiteRig().tmax;
   $("kbTension").style.width = `${clamp(KS.T / tm, 0, 1) * 100}%`;
   $("kbTension").style.background = KS.T > tm * 0.85 ? "#f07d9c" : KS.T > tm * 0.6 ? "#f2c14e" : "#5fc9a8";
   $("kbTrim").style.width = `${KS.trim * 100}%`;
@@ -456,6 +464,8 @@ function initRaceControls() {
   hr.addEventListener("pointerup", () => { delete hr.dataset.drag; });
   hr.addEventListener("dblclick", () => { RACE.rudder = 0; });
   $("kiteBtn").addEventListener("click", () => { if (RACE.state === "run") toggleKiteDeploy(); });
+  document.querySelectorAll("[data-rig]").forEach(btn => btn.addEventListener("click", () => setRig(btn.dataset.rig, +btn.dataset.v)));
+  updateRigUi();
   $("tGhost").addEventListener("click", toggleGhosts);
   $("tWin").addEventListener("click", toggleWindowView);
   $("tView").addEventListener("click", toggleCamView);

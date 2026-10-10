@@ -107,6 +107,26 @@ function drawParagliderSide(ctx, x, y, span, angle) {
 
 // --- Physique de traction en course ---
 const KITE = { area: 150, LREAL: 200, LVIS: 72, CL: 1.0, LD0: 4.2, FAST: 6, KC_AUTO: 3.2 };
+// Gréement choisi en mode expert : 3 surfaces et 3 longueurs de lignes (le débutant garde 150 m² sur 200 m)
+const RIG_AREAS = [10, 25, 100], RIG_LINES = [25, 100, 300];
+const RIG = (() => { let r = {}; try { r = JSON.parse(store.get("aether.rig") || "{}") || {}; } catch { /* valeur illisible */ } return { area: RIG_AREAS.includes(r.area) ? r.area : 25, line: RIG_LINES.includes(r.line) ? r.line : 100 }; })();
+// surface, longueur réelle, longueur affichée (échelle du décor), tension de rupture et agilité du gréement courant
+function kiteRig() {
+  if (RACE.mode !== "expert") return { area: KITE.area, L: KITE.LREAL, Lvis: KITE.LVIS, tmax: cfg().TMAX, agil: 1 };
+  return {
+    area: RIG.area, L: RIG.line, Lvis: 18 + RIG.line * 0.27,
+    tmax: cfg().TMAX * RIG.area / 100,                         // lignes dimensionnées pour l'aile : ≈ 1,15 kN par m²
+    agil: clamp(Math.pow(25 / RIG.area, 0.3), 0.6, 1.45)       // petite aile = virages vifs, grande aile = lente
+  };
+}
+function setRig(kind, v) {
+  if (KS.dep > 0.05 && RACE.state === "run") { toast(T("rig_locked"), "warn", "rig", 2.5); return; }
+  RIG[kind] = v; store.set("aether.rig", JSON.stringify(RIG)); KS.trail.length = 0;
+  updateRigUi();
+}
+function updateRigUi() {
+  document.querySelectorAll("[data-rig]").forEach(b => b.classList.toggle("on", RIG[b.dataset.rig] === +b.dataset.v));
+}
 const KS = { deployed: false, dep: 0, damaged: 0, phi: 0, theta: 80, psi: 90, trim: 0.6, T: 0, fwd: 0, lat: 0, wf: 0, Va: 0,
   overload: 0, crashed: 0, kt: 0, pullAz: 0, azRel: 0, el: 30, trail: [], state: "stowed", azSmooth: 0 };
 function kiteReset() {
@@ -153,7 +173,8 @@ function kiteStepAuto(dt, air, tmax) {
   }
 }
 // Pilotage manuel (expert) : lignes arrière = virage, lignes avant = puissance
-function kiteStepManual(dt, air, steer, trimDir, tmax) {
+function kiteStepManual(dt, air, steer, trimDir, rig) {
+  const tmax = rig.tmax;
   KS.damaged = Math.max(0, KS.damaged - dt);
   KS.dep = clamp(KS.dep + (KS.deployed ? 0.8 : -0.9) * dt, 0, 1);
   KS.trim = clamp(KS.trim + trimDir * 0.55 * dt, 0.3, 1);
@@ -171,8 +192,9 @@ function kiteStepManual(dt, air, steer, trimDir, tmax) {
   const wf = Math.max(0, Math.cos(rad(KS.theta)) * Math.cos(rad(KS.phi)));
   const LD = KITE.LD0 * (0.55 + 0.45 * KS.trim);
   const vt = air.Wa * wf * LD + 0.12 * air.Wa;                // vitesse de l'aile en travers du vent (m/s)
-  const om = Math.min(110, deg(vt / KITE.LREAL) * KITE.FAST);   // vitesse angulaire dans la fenêtre (°/s, rythme de jeu)
-  KS.psi = norm180(KS.psi + steer * (55 + 115 * clamp(vt / 25, 0, 1)) * dt);
+  // vitesse angulaire dans la fenêtre (°/s, rythme de jeu) : lignes courtes = l'aile traverse vite la fenêtre
+  const om = Math.min(130, deg(vt / rig.L) * KITE.FAST * Math.sqrt(rig.L / KITE.LREAL));
+  KS.psi = norm180(KS.psi + steer * (55 + 115 * clamp(vt / 25, 0, 1)) * rig.agil * dt);
   KS.theta += om * Math.cos(rad(KS.psi)) * dt;
   KS.phi += om * Math.sin(rad(KS.psi)) * dt / Math.max(Math.cos(rad(KS.theta)), 0.3);
   if (vt < 5) KS.theta -= (5 - vt) * 2.6 * dt;                // trop lent : l'aile retombe
@@ -180,7 +202,7 @@ function kiteStepManual(dt, air, steer, trimDir, tmax) {
   if (KS.theta > 88) KS.theta = 88;
   KS.wf = wf;
   KS.Va = air.Wa * wf * Math.sqrt(1 + LD * LD);
-  KS.T = 0.5 * RHO * KITE.area * KITE.CL * (0.2 + 0.8 * KS.trim) * KS.Va * KS.Va / 1000;
+  KS.T = 0.5 * RHO * rig.area * KITE.CL * (0.2 + 0.8 * KS.trim) * KS.Va * KS.Va / 1000;
   KS.azRel = air.down + KS.phi; KS.el = KS.theta;
   const Th = KS.T * Math.cos(rad(KS.theta));
   KS.fwd = Th * Math.cos(rad(KS.azRel)); KS.lat = Th * Math.sin(rad(KS.azRel));

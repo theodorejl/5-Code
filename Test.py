@@ -1,6 +1,6 @@
 """Æther Swiss Kite Simulator — point d'entrée Streamlit.
 
-Pages : Jeu (accueil, bac à sable, traversées débutant/expert), Résultats, Suivi des prompts, Admin.
+Pages : Jeu (accueil, bac à sable, traversées débutant/expert) et Résultats.
 Le jeu lui-même est dans game/ (HTML + modules JS), les services Python dans app/.
 """
 import streamlit as st
@@ -8,7 +8,7 @@ import streamlit as st
 from app import storage
 from app.game import game_page
 from app.i18n import LANGS, t
-from app.pages import admin_page, journal_page, results_page
+from app.pages import results_page
 
 st.set_page_config(page_title="Æther Swiss Kite Simulator", page_icon="🪁", layout="wide")
 storage.init()
@@ -44,8 +44,6 @@ nav = st.navigation(
     [
         st.Page(game_page, title=t("page_game"), icon="🪁", url_path="jeu", default=True),
         st.Page(results_page, title=t("page_results"), icon="🗺️", url_path="resultats"),
-        st.Page(journal_page, title=t("page_journal"), icon="📝", url_path="journal"),
-        st.Page(admin_page, title=t("page_admin"), icon="🔐", url_path="admin"),
     ],
     position="top",
 )

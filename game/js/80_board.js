@@ -184,6 +184,7 @@ function showEnd() {
   $("endTitle").innerHTML = T(rank === 1 ? "end_title_1" : rank > 0 && rank <= 3 ? "end_title_podium" : "end_title");
   $("endScore").innerHTML = `${fmt3(r.total)}<small>s</small>`;
   const rows = [[T("e_time"), fmtTime(r.time)], [T("e_pen"), `+${fmt3(r.pen)} s · ${r.coll} ${T("e_coll")}`], [T("e_co2"), `${fmt0(r.co2)} kg`], [T("e_saved"), `${fmt0(r.saved)} kg`]];
+  if (r.rig) rows.push([T("e_rig"), r.rig]);
   $("endBreak").innerHTML = rows.map(([a, b]) => `<span>${a}</span><span>${b}</span>`).join("");
   $("endRank").textContent = rank > 0 ? T("end_rank", { r: rank, n: pl.length }) : "";
   showOverlay("ovEnd");
