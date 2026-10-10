@@ -4,7 +4,8 @@
 const CARDS = {
   fr: ["N", "NE", "E", "SE", "S", "SO", "O", "NO"],
   en: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
-  de: ["N", "NO", "O", "SO", "S", "SW", "W", "NW"]
+  de: ["N", "NO", "O", "SO", "S", "SW", "W", "NW"],
+  it: ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
 };
 const cardinal = a => CARDS[LANG][Math.round(norm360(a) / 45) % 8];
 const knobs = {};
@@ -30,13 +31,13 @@ function createKnob(container, o) {
   box.innerHTML = `
     <svg viewBox="0 0 120 120" tabindex="0" role="slider" aria-valuemin="${o.min}" aria-valuemax="${o.max}">
       <defs>
-        <radialGradient id="${id}b" cx="40%" cy="32%" r="78%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#efecf7"/><stop offset="1" stop-color="#d9d3ea"/></radialGradient>
+        <radialGradient id="${id}b" cx="40%" cy="32%" r="78%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#edf0f6"/><stop offset="1" stop-color="#d6dce8"/></radialGradient>
         <linearGradient id="${id}g" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${o.color2}"/><stop offset="1" stop-color="${o.color}"/></linearGradient>
       </defs>
       ${ticks}
       <path d="${wrap ? arcPath(60, 60, 47, 0, 359.9) : arcPath(60, 60, 47, start, start + sweep)}" fill="none" stroke="rgba(38,43,69,.07)" stroke-width="6" stroke-linecap="round"/>
       <path class="kv" fill="none" stroke="url(#${id}g)" stroke-width="6" stroke-linecap="round"/>
-      <circle cx="60" cy="60" r="35" fill="url(#${id}b)" stroke="#d8d1ec"/>
+      <circle cx="60" cy="60" r="35" fill="url(#${id}b)" stroke="#d3dbe9"/>
       <g class="letters"></g>
       <g class="kp"><line x1="60" y1="${wrap ? 30 : 31}" x2="60" y2="${wrap ? 46 : 45}" stroke="${o.color}" stroke-width="3.6" stroke-linecap="round"/>
       ${wrap ? `<path d="M60 24 L55 32 L65 32 Z" fill="${o.color}"/>` : ""}</g>

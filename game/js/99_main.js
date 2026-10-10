@@ -32,7 +32,7 @@ function init() {
   initSandbox();
   initForms();
   initKeyboard();
-  mountBoard($("homeBoard"), {});
+  mountBoard($("homeBoard"), {}); mountBoard($("modalBoard"), {}); mountBoard($("endBoard"), {});
   const saved = store.get("aether.lang");
   setLang(I18N[saved] && Object.keys(I18N[saved]).length ? saved : "fr", true);
   if (PLAYER.name) { $("playerChip").hidden = false; $("playerChip").textContent = PLAYER.team ? `${PLAYER.name} · ${PLAYER.team}` : PLAYER.name; }
@@ -40,6 +40,9 @@ function init() {
   requestAnimationFrame(() => drawCards());
   new ResizeObserver(() => drawCards()).observe($("viewHome"));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { curveDirty = true; drawCards(); });
+  const refit = () => { if (VIEW === "beginner" || VIEW === "expert") fitRace(); };
+  window.addEventListener("resize", refit);
+  try { window.parent.addEventListener("resize", refit); } catch { /* parent inaccessible */ }
   requestAnimationFrame(frame);
   // accès pour les tests automatisés uniquement (adresse contenant aetherdebug=1)
   try {

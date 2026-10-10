@@ -5,7 +5,7 @@ from pathlib import Path
 import streamlit as st
 
 from app import storage
-from app.i18n import t
+from app.i18n import LANGS, t
 
 GAME_DIR = Path(__file__).resolve().parent.parent / "game"
 
@@ -62,7 +62,7 @@ def _on_score():
 
 def _on_lang():
     new = (st.session_state.get("aether_bridge") or {}).get("lang")
-    if new in ("fr", "en", "de"):
+    if new in LANGS:
         st.session_state["lang"] = new
         st.session_state["lang_ctrl"] = new
         st.query_params["lang"] = new

@@ -1,7 +1,8 @@
 // ================================================================
 //  TRAVERSÉES DU LÉMAN (débutant / expert) : physique de la barge, commandes, caméras, course
 // ================================================================
-const BARGE = { CD: 4.2, FE: 80, PMAX: 500, ETA: 0.65, SFOC: 0.215, CO2F: 3.17, AF: 70, CX: 0.9 };
+// AUX : groupe électrogène de bord (treuil et pilote automatique du kite, timonerie), toujours en marche
+const BARGE = { CD: 4.2, FE: 80, PMAX: 500, AUX: 60, ETA: 0.65, SFOC: 0.215, CO2F: 3.17, AF: 70, CX: 0.9 };
 // Les deux modes partagent la même physique ; seules la masse effective (inertie ressentie), l'agilité
 // et la compression du temps changent pour adapter les sensations au public.
 const MODES = {
@@ -94,12 +95,13 @@ function stepRace(dt) {
   B.heave = Math.sin(RACE.t * 1.1) * sea.A * 0.6;
   // énergie : carburant du moteur et CO2 évité grâce au kite (convertis en temps réel de traversée)
   const ft = FTIME() * dt;
-  RACE.fuel += Math.max(0, RACE.throttle) * BARGE.PMAX * ft / 3600 * BARGE.SFOC;
+  RACE.fuel += (Math.max(0, RACE.throttle) * BARGE.PMAX + BARGE.AUX) * ft / 3600 * BARGE.SFOC;
   RACE.saved += Math.max(0, KS.fwd) * Math.max(0, B.u) / BARGE.ETA * ft / 3600 * BARGE.SFOC * BARGE.CO2F;
   collisions(dt);
   // annonces : vents du Léman, tempête, dauphins
   for (const [f0, key] of WIND_NAMES) if (RACE.f >= f0 && !RACE.windShown.has(key)) { RACE.windShown.add(key); toast(T(key), "", null); }
   if (RACE.f > 0.42 && RACE.f < 0.47 && KS.deployed) toast(T(RACE.mode === "expert" ? "storm_warn_expert" : "storm_warn"), "warn", "stormw", 8);
+  if (RACE.f >= 0.48 && !RACE.windShown.has("sharks")) { RACE.windShown.add("sharks"); toast(T("sharks_toast"), "warn", null); }
   for (const fs of DOLPHIN_SPOTS) if (RACE.f >= fs && !RACE.windShown.has("d" + fs)) { RACE.windShown.add("d" + fs); spawnDolphins(); toast(T("dolphins"), "good", null); }
   if (w.gust > 0.5 && KS.state === "flying") toast(T("gust_caught"), "good", "gust", 6);
   // trace de la route (pour les classements et la page des résultats)
@@ -128,6 +130,15 @@ function collisions(dt) {
     if (pts.some(a => cpts.some(c => Math.hypot(a[0] - c[0], a[1] - c[1]) < 11.5)) && !(RACE.cool["cgn" + i] > 0)) {
       RACE.cool["cgn" + i] = 3; RACE.pen += 5; RACE.coll++; B.u *= 0.35; B.r += (Math.random() - 0.5) * 20; RACE.shake = 0.9;
       toast(T("ev_cgn") + " +5 s", "bad", null);
+    }
+  }
+  // bateau pirate (zone de tempête)
+  const pir = pirateState(RACE.tau, performance.now() / 1000);
+  if (Math.hypot(pir.x - B.x, pir.y - B.y) < 60) {
+    const ppts = [-10, 0, 10].map(ly => bargeToWorld({ ...pir, heelR: 0, pitchR: 0, heave: 0 }, 0, ly, 0));
+    if (pts.some(a => ppts.some(c => Math.hypot(a[0] - c[0], a[1] - c[1]) < 9)) && !(RACE.cool.pirate > 0)) {
+      RACE.cool.pirate = 3; RACE.pen += 5; RACE.coll++; B.u *= 0.4; RACE.shake = 0.9;
+      toast(T("ev_pirate") + " +5 s", "bad", null);
     }
   }
   for (const [i, j] of JETSKIS.entries()) {
@@ -298,6 +309,9 @@ function drawObstacles(ctx, cam, L, tau, t) {
       }
     }
   }
+  drawAetherTest(ctx, cam, L, t);
+  drawPirate(ctx, cam, L, tau, t);
+  drawSharks(ctx, cam, t);
   // dauphins qui sautent à côté de l'étrave
   const B = RACE.boat;
   RACE.dolphins = RACE.dolphins.filter(d => RACE.t - d.t0 < d.life);
@@ -467,6 +481,7 @@ function initRaceControls() {
   document.querySelectorAll("[data-rig]").forEach(btn => btn.addEventListener("click", () => setRig(btn.dataset.rig, +btn.dataset.v)));
   updateRigUi();
   $("tGhost").addEventListener("click", toggleGhosts);
+  $("tPause").addEventListener("click", () => { togglePause(); $("tPause").blur(); });
   $("tWin").addEventListener("click", toggleWindowView);
   $("tView").addEventListener("click", toggleCamView);
   WORLD = setupCanvas($("worldCv"));
@@ -493,15 +508,20 @@ function frameRace(dt) {
       RACE.state = "run"; RACE.throttle = 0.3;
       setTimeout(() => { if ($("bigCount").textContent === T("go")) $("bigCount").hidden = true; }, 700);
       toast(T(RACE.mode === "expert" ? "start_tip_expert" : "start_tip"), "", null);
+      $("spacePop").hidden = false; RACE.popT = 0;
     }
-  } else if (RACE.state === "run") stepRace(dt);
-  else if (RACE.state === "finish") {
+  } else if (RACE.state === "run") {
+    stepRace(dt);
+    // invitation à lancer le kite : disparaît dès qu'il est sorti (ou après 9 s)
+    if (!$("spacePop").hidden) { RACE.popT += dt; if (KS.deployed || RACE.popT > 9) $("spacePop").hidden = true; }
+  } else if (RACE.state === "finish") {
     RACE.finishT += dt;
     RACE.boat.u = lerp(RACE.boat.u, 0.8, damp(0.8, dt));
     const h = rad(RACE.boat.hdg), vf = RACE.boat.u / KN * VK();
     RACE.boat.x += Math.sin(h) * vf * dt; RACE.boat.y += Math.cos(h) * vf * dt;
     if (RACE.finishT >= FINISH_DUR) showEnd();
   }
+  if (RACE.state !== "run") $("spacePop").hidden = true;
   if (RACE.state === "end") RACE.finishT = Math.min(RACE.finishT + dt, FINISH_DUR);
   renderWorld(dt);
   drawMinimap(MINI, RACE.boat, RACE.tau, RACE.showGhosts ? RACE.ghosts[RACE.mode] : null);

@@ -18,9 +18,9 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "docs" / "schema_fonctionnel.pdf"
 
-INK, MUTED, ACCENT = "#262b45", "#6b6f8a", "#7c6cf0"
-PASTEL = {"lilac": "#ece8ff", "mint": "#dff5ec", "sky": "#e2eefa", "peach": "#fde9df", "sand": "#fbf3d9", "rose": "#fbe3ea", "grey": "#f1f0f6"}
-EDGE = {"lilac": "#9b87f5", "mint": "#6cc59c", "sky": "#6fa3d8", "peach": "#e59a73", "sand": "#d6b85a", "rose": "#e07a98", "grey": "#a7a9bd"}
+INK, MUTED, ACCENT = "#262b45", "#6b6f8a", "#1f3a68"
+PASTEL = {"lilac": "#e3eaf5", "mint": "#dff5ec", "sky": "#e2eefa", "peach": "#fde9df", "sand": "#fbf3d9", "rose": "#fbe3ea", "grey": "#f1f0f6"}
+EDGE = {"lilac": "#3d5f94", "mint": "#6cc59c", "sky": "#6fa3d8", "peach": "#e59a73", "sand": "#d6b85a", "rose": "#e07a98", "grey": "#a7a9bd"}
 W, H = 100, 70.7  # repère des pages (proportions A4 paysage)
 
 
@@ -32,7 +32,7 @@ def page(pdf, title, subtitle, n):
     ax.axis("off")
     ax.text(4, H - 5, title, fontsize=19, fontweight="bold", color=INK, va="center")
     ax.text(4, H - 8.6, subtitle, fontsize=10, color=MUTED, va="center")
-    ax.plot([4, W - 4], [H - 10.8, H - 10.8], color="#dcd8ea", lw=0.8)
+    ax.plot([4, W - 4], [H - 10.8, H - 10.8], color="#d8dde8", lw=0.8)
     ax.text(4, 2.2, "Æther Swiss Kite Simulator · schéma fonctionnel", fontsize=7.5, color=MUTED)
     ax.text(W - 4, 2.2, f"{n} / 4 · {dt.date.today():%d.%m.%Y}", fontsize=7.5, color=MUTED, ha="right")
     return fig, ax
@@ -77,10 +77,10 @@ def page_macro(pdf):
     d = box(ax, 71, 9, 25, 22, "Navigateur des joueurs",
             "Pages : Jeu · Résultats.\n"
             "Le jeu tourne dans une iframe\n(Canvas 2D, physique et rendu locaux,\n30 à 60 images/s).\n"
-            "Langue FR / EN / DE partagée\nentre Streamlit et le jeu.", "peach")
+            "Langue FR / EN / DE / IT partagée\nentre Streamlit et le jeu.", "peach")
     e = box(ax, 37.5, 9, 25, 22, "Données partagées",
             "SQLite aether_scores.db (table runs) :\npseudo, équipe, temps, pénalités,\nCO$_2$, collisions, trace de la route.\n"
-            "Classements jour / semaine / historique,\npar joueur et par équipe.\n"
+            "Classement CO$_2$ × temps, CO$_2$ ou temps,\nchaque tentative datée ; jour / semaine /\nhistorique, par joueur et par équipe.\n"
             "Traces des 3 meilleurs = fantômes.", "sand")
     f = box(ax, 4, 9, 25, 22, "Utilisateur (porteur du projet)",
             "Joue, observe les classements et\nla page Résultats.\n"
@@ -116,7 +116,7 @@ def page_archi(pdf):
         "L'iframe du jeu n'est jamais\nrechargée (HTML identique).", "sky", fs=7.9)
     ax.text(64, 57.5, "JEU DANS LE NAVIGATEUR (HTML + CANVAS 2D)", fontsize=8.5, color=MUTED, fontweight="bold")
     mods = [
-        ("00_core", "outils, couleurs, qualité adaptative"), ("05/06 i18n", "textes FR / EN / DE (≈ 280 clés)"),
+        ("00_core", "outils, couleurs, qualité adaptative"), ("05/06 i18n", "textes FR / EN / DE / IT (≈ 300 clés)"),
         ("10_sandbox_model", "modèle du bac à sable"), ("15/20_sandbox", "potards, vue de côté, missions"),
         ("30_leman", "géographie, parcours, météo, CGN"), ("40_kite", "aile parapente, kite auto / manuel"),
         ("50_barge", "barge 40 m, modèles à facettes"), ("60_render", "ciel, relief, eau, villes, vent"),
@@ -179,7 +179,7 @@ def page_physics(pdf):
             ax.text(x + 0.6, ty - r * 2.5, cell, fontsize=7.9, color=INK if r else MUTED, fontweight="bold" if r == 0 else "normal", va="top")
             x += cw[c]
         if r == 0:
-            ax.plot([tx, tx + sum(cw)], [ty - 2.3, ty - 2.3], color="#dcd8ea", lw=0.8)
+            ax.plot([tx, tx + sum(cw)], [ty - 2.3, ty - 2.3], color="#d8dde8", lw=0.8)
     box(ax, 4, 7.6, 44, 4.8, "Échelle", "", "grey", tfs=8.6)
     note(ax, 13, 11.3, "1 km réel = 60 m de jeu (1:16,7, relief ×1,3) : les angles du paysage restent\nréalistes ; barge, bateaux CGN et jet-skis gardent leur taille réelle.", fs=7.4, color=INK)
     box(ax, 52, 7.6, 44, 4.8, "Bac à sable", "", "grey", tfs=8.6)
@@ -221,7 +221,7 @@ def page_visual(pdf):
         "st.components.v2, st.iframe)\n"
         "Python : SQLite (scores), pandas (tableaux), matplotlib (routes colorées, ce PDF) · Navigateur : HTML, CSS, JavaScript, Canvas 2D, "
         "postMessage\n"
-        "Tests : Chrome sans écran + protocole DevTools (CDP) : parcours automatisés des 3 modes, 3 langues, 3 gréements et classement ; "
+        "Tests : Chrome sans écran + protocole DevTools (CDP) : parcours automatisés des 3 modes, 4 langues, 3 gréements et classement ; "
         "captures d'écran vérifiées.\n"
         "Inspirations : bruno-simon.com (physique ludique), ig.ft.com/climate-game (enjeu climat), windy.app (visualisation du vent).",
         "grey", fs=7.7)

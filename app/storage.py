@@ -98,8 +98,13 @@ def add_run(entry):
 def list_runs(limit=6000):
     """Résumé des courses (sans tracé) pour les classements du jeu."""
     with _conn() as c:
-        rows = c.execute("SELECT id, mode, name, team, total_s, ts FROM runs ORDER BY ts DESC LIMIT ?", (limit,)).fetchall()
-    return [{"id": r["id"], "mode": r["mode"], "name": r["name"], "team": r["team"], "total": r["total_s"], "ts": r["ts"]} for r in rows]
+        rows = c.execute("SELECT id, mode, name, team, total_s, co2_kg, ts FROM runs ORDER BY ts DESC LIMIT ?", (limit,)).fetchall()
+    return [{"id": r["id"], "mode": r["mode"], "name": r["name"], "team": r["team"], "total": r["total_s"], "co2": r["co2_kg"], "ts": r["ts"]} for r in rows]
+
+
+def score(total_s, co2_kg):
+    """Indice CO₂ × temps (t·s) : plus il est petit, mieux c'est. C'est lui qui classe le podium."""
+    return round((co2_kg or 0) / 1000 * total_s, 3)
 
 
 def best_runs(mode, since_ts=0, limit=None, with_track=False):
@@ -127,6 +132,16 @@ def ghosts():
     return {m: [{"name": r["name"], "total": r["total_s"], "track": r["track"]} for r in best_runs(m, limit=3, with_track=True)] for m in MODES}
 
 
-# ------------------------------------------------------------------
-#  Administration
-# ------------------------------------------------------------------
+
+def ranked_runs(mode, since_ts=0, sort="score", limit=None, with_track=False):
+    """Toutes les tentatives (chaque course compte, datée), classées par indice CO₂ × temps, par CO₂ ou par temps."""
+    cols = "id, mode, name, team, time_s, pen_s, total_s, co2_kg, saved_kg, collisions, ts" + (", track" if with_track else "")
+    with _conn() as c:
+        rows = [dict(r) for r in c.execute(f"SELECT {cols} FROM runs WHERE mode = ? AND ts >= ?", (mode, since_ts)).fetchall()]
+    for d in rows:
+        d["score"] = score(d["total_s"], d["co2_kg"])
+        if with_track:
+            d["track"] = json.loads(d["track"] or "[]")
+    key = {"score": "score", "co2": "co2_kg", "time": "total_s"}.get(sort, "score")
+    rows.sort(key=lambda d: (d[key] if d[key] is not None else 1e18, d["total_s"]))
+    return rows[:limit] if limit else rows

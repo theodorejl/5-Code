@@ -45,11 +45,11 @@ function gKnob(g, frac, stops) {
   const { ctx, w, h } = g, cx = w / 2, cy = h / 2 + 2, r = Math.min(w, h) / 2 - 5;
   gArc(g, frac, stops, { lw: 4 });
   const grd = ctx.createRadialGradient(cx - 3, cy - 4, 1, cx, cy, r * 0.62);
-  grd.addColorStop(0, "#ffffff"); grd.addColorStop(1, "#dcd7ec");
+  grd.addColorStop(0, "#ffffff"); grd.addColorStop(1, "#d8dee9");
   ctx.fillStyle = grd; ctx.strokeStyle = "rgba(38,43,69,.25)"; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(cx, cy, r * 0.62, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   const a = Math.PI * 0.75 + Math.PI * 1.5 * clamp(frac, 0, 1);
-  ctx.strokeStyle = "#7c6cf0"; ctx.lineWidth = 2.4; ctx.lineCap = "round";
+  ctx.strokeStyle = "#1f3a68"; ctx.lineWidth = 2.4; ctx.lineCap = "round";
   ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r * 0.18, cy + Math.sin(a) * r * 0.18); ctx.lineTo(cx + Math.cos(a) * r * 0.55, cy + Math.sin(a) * r * 0.55); ctx.stroke();
 }
 // cadran de vent : la barge pointe vers le haut, la flèche montre d'où vient le vent
@@ -110,21 +110,21 @@ function gSpark(g, hist) {
   const { ctx, w, h } = g;
   ctx.fillStyle = "rgba(95,201,168,.12)"; ctx.fillRect(2, h * 0.1, w - 4, h * 0.4);   // zone 45-60 i/s
   ctx.strokeStyle = "rgba(240,125,156,.5)"; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(2, h * 0.6); ctx.lineTo(w - 2, h * 0.6); ctx.stroke(); ctx.setLineDash([]);   // 30 i/s
-  ctx.strokeStyle = "#7c6cf0"; ctx.lineWidth = 1.6; ctx.beginPath();
+  ctx.strokeStyle = "#1f3a68"; ctx.lineWidth = 1.6; ctx.beginPath();
   hist.forEach((f, i) => { const x = 2 + (w - 4) * i / Math.max(hist.length - 1, 1), y = h * (1 - 0.8 * clamp(f / 60, 0, 1.05)); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
   ctx.stroke();
 }
 const SPEED_STOPS = [[0, "#6271b7"], [0.35, "#39a0c8"], [0.6, "#4cbf7f"], [0.8, "#e1c54a"], [1, "#e08a3c"]];
-const THR_STOPS = [[0, "#f6a6bd"], [0.3, "#e7e2f3"], [0.5, "#bfeee0"], [1, "#5fc9a8"]];
+const THR_STOPS = [[0, "#f6a6bd"], [0.3, "#e2e7f0"], [0.5, "#bfeee0"], [1, "#5fc9a8"]];
 const TENS_STOPS = [[0, "#a8e6d3"], [0.55, "#f7e3a1"], [0.75, "#ffc9a8"], [1, "#f07d9c"]];
 function updateDash() {
   if (!DASH.cv.time) return;
   for (const id in DASH.cv) { const g = DASH.cv[id]; g.ctx.clearRect(0, 0, g.w, g.h); }
   const B = RACE.boat, wd = RACE.wind, kn = B.u / KN, rig = kiteRig(), f = clamp(RACE.f, 0, 1);
   const set = (id, v, sub) => { $("v_" + id).textContent = v; $("s_" + id).textContent = sub || ""; };
-  gArc(DASH.cv.time, f, [[0, "#a8e6d3"], [1, "#9b87f5"]], { text: `${fmt0(f * 100)}` });
+  gArc(DASH.cv.time, f, [[0, "#a8e6d3"], [1, "#3d5f94"]], { text: `${fmt0(f * 100)}` });
   set("time", fmtClock(RACE.t), `${fmt1((1 - f) * COURSE_LEN / SCALE)} km`);
-  gArc(DASH.cv.speed, kn / 12, SPEED_STOPS, { needle: true, zones: [[8.5 / 12, 1, "#9b87f5"]] });
+  gArc(DASH.cv.speed, kn / 12, SPEED_STOPS, { needle: true, zones: [[8.5 / 12, 1, "#3d5f94"]] });
   set("speed", `${fmt1(kn)} ${T("u_kn")}`, `⚙ ${fmt0(Math.max(0, RACE.Fe || 0))} kN`);
   gKnob(DASH.cv.engine, (RACE.throttle + 0.4) / 1.4, THR_STOPS);
   set("engine", `${fmt0(RACE.throttle * 100)} %`, `${fmt0(Math.max(0, RACE.throttle) * BARGE.PMAX)} kW`);
@@ -133,7 +133,7 @@ function updateDash() {
   gArc(DASH.cv.kite, KS.T / (rig.tmax * 1.2), TENS_STOPS, { needle: true, zones: [[0.7, 0.83, "#f2c14e"], [0.83, 1, "#f07d9c"]] });
   set("kite", `${fmt0(KS.T)} kN`, `→ ${fmt0(KS.fwd)} · max ${fmt0(rig.tmax)}`);
   const share = KS.fwd > 0 ? KS.fwd / (KS.fwd + Math.max(1, RACE.Fe || 0)) : 0;
-  gDonut(DASH.cv.share, share, "#9b87f5", `${fmt0(share * 100)}`);
+  gDonut(DASH.cv.share, share, "#3d5f94", `${fmt0(share * 100)}`);
   set("share", `${fmt0(share * 100)} %`, RACE.mode === "expert" ? `${rig.area} m² · ${rig.L} m` : `${KITE.area} m²`);
   const co2 = RACE.fuel * BARGE.CO2F;
   gBars(DASH.cv.co2, co2, RACE.saved);

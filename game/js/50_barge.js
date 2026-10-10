@@ -152,9 +152,9 @@ function drawCgn(ctx, cam, st, light) {
     }
   });
   // drapeau suisse à la poupe
-  const fp = cam.p(...bargeToWorld(b, 0, -29, 7)), sc = cam.k * 57.3 / Math.max(1, Math.hypot(cam.x - st.x, cam.y - st.y));
-  if (sc > 0.6) {
-    const s = Math.max(3, sc * 2.2);
+  const fp = cam.p(...bargeToWorld(b, 0, -29, 7)), sc = cam.k * 57.3 / Math.max(1, fp[2]);
+  if (sc > 0.6 && Math.abs(fp[3]) < 100 && fp[2] > 6) {   // drapeau devant la caméra seulement
+    const s = clamp(sc * 2.2, 3, 60);
     ctx.fillStyle = "#d52b1e"; ctx.fillRect(fp[0], fp[1] - s, s * 1.2, s);
     ctx.fillStyle = "#fff"; ctx.fillRect(fp[0] + s * 0.5, fp[1] - s * 0.8, s * 0.2, s * 0.6); ctx.fillRect(fp[0] + s * 0.3, fp[1] - s * 0.6, s * 0.6, s * 0.2);
   }

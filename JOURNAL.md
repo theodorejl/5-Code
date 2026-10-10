@@ -22,6 +22,7 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
 | 10 | Sites de jeux en ligne pour s'inspirer | 10-10 15:41:42 | 10-10 15:42:23 | 41 s |
 | 11 | Æther Swiss Kite Simulator : refonte complète | 10-10 16:47:06 | 10-10 17:49:13 | 1 h 02 min 07 s |
 | 12 | Pages retirées, gréement expert, caméra, tableau de bord | 10-10 18:09:19 | 10-10 21:44:53 | 10 min 54 s |
+| 13 | Score CO₂ × temps, tentatives datées, bleu marine, EPFL, pirate, italien | 10-10 21:46:38 | 10-10 22:06:08 | 19 min 30 s |
 
 ---
 
@@ -182,3 +183,47 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
     - courbe des images par seconde.
   - **PDF** : schéma fonctionnel mis à jour (pages retirées, gréement expert).
 - **Vérification** : traversée expert en français puis en allemand (1366 × 768) avec les gréements 10 m²/25 m, 25/100, 100/300, 10/100 et 100/25. Le kite reste pilotable par un pilote automatique simple : il vole 65 à 97 % du temps. Le changement de gréement est bien refusé kite sorti. La navigation n'affiche plus que Jeu et Résultats. Aucune erreur JavaScript.
+
+## 13. Score CO₂ × temps, tentatives datées, bleu marine, EPFL et essais Aether, pirate et requins, italien
+- **Heure du prompt** : 2026-10-10 21:46:38 · **Heure du résultat** : 2026-10-10 22:06:08 · **Temps de calcul** : 19 min 30 s
+- **Demande** : liste de 13 améliorations :
+  - nouvelle échelle de classement CO₂ × temps (podium sur cet indice, tableau triable par indice, CO₂ ou temps) ;
+  - garder toutes les tentatives d'une personne, datées ;
+  - bleu marine à la place du bleu-violet ;
+  - campus EPFL avec le Rolex Learning Center et les essais du prototype Aether devant Lausanne ;
+  - montagnes sans trous et Valais au loin, Jet d'eau plus stylé ;
+  - nouvelle phrase d'accueil et nouveaux sous-titres des modes ;
+  - bateau pirate et requins dans la tempête ;
+  - italien ;
+  - bouton Pause ;
+  - fenêtre de jeu plus grande ;
+  - message « Espace pour lancer le kite » ;
+  - onglets du classement qui ne marchaient pas.
+- **Modifications** :
+  - **Classement** :
+    - Indice CO₂ × temps (t·s) = tonnes de CO₂ émises × temps total. Il classe toujours le podium. Le tableau se trie par indice, par CO₂ ou par temps.
+    - Chaque tentative est une ligne datée, par exemple « TJL – Aether Alumni – 10/10/2026 22h05 ». Les équipes sont classées sur la meilleure tentative de chaque membre.
+    - L'histogramme suit le critère choisi. L'écran d'arrivée affiche l'indice et le rang parmi toutes les tentatives. La page Résultats propose les mêmes tris.
+  - **CO₂ du bord** : un groupe électrogène de bord de 60 kW tourne en permanence (treuil et pilote automatique du kite, timonerie). Ainsi, traîner sans moteur n'est pas gratuit : l'indice récompense le bon compromis entre vitesse, moteur et kite.
+  - **Bug des onglets** : dans la fenêtre « Classements » et sur l'écran d'arrivée, les onglets ne redessinaient rien. Ces deux blocs sont maintenant enregistrés et redessinés à chaque clic.
+  - **Couleurs** : tous les bleu-violet (accent, boutons, onglets, jauges, logo, thème Streamlit) passent au bleu marine. « Aether Swiss Kite » est écrit en bleu dans le titre d'accueil.
+  - **Textes** : accueil « Bienvenue sur le simulateur Aether Swiss Kite ». Sous-titres des modes : « ≈ 1 min – pilote la barge uniquement » et « ≈ 3 min – pilote la barge et le kite ». Règles mises à jour (objectif = meilleur indice).
+  - **Décor** :
+    - Campus de l'EPFL : Rolex Learning Center (dalle blanche ondulée avec patios), bâtiments, logo EPFL.
+    - Devant Lausanne, l'équipe Aether teste son prototype : un semi-rigide tracte en rond un petit catamaran portant la machine de contrôle. Le kite fait des 8, s'écrase, les bateaux s'arrêtent puis relancent l'aile (cycle de 40 s).
+    - Montagnes : le Chablais rejoint les Dents du Midi et les Voirons, le haut Chablais relie le Môle aux Dents du Midi, le Jorat est prolongé. Ajout des Alpes vaudoises, du Muveran et des sommets valaisans au loin (Grand Combin).
+    - Jet d'eau : plus haut, colonne à trois couches lumineuses, panache de gouttes poussé par le vent, halo de bruine et arc-en-ciel au soleil.
+    - Dans la zone de tempête : un bateau pirate (voiles noires, pavillon à tête de mort ; abordage +5 s) et des requins qui tournent.
+  - **Langues** : l'italien est ajouté partout (jeu, tutoriels, page Résultats, hypothèses du modèle).
+  - **Jeu** :
+    - Bouton Pause dans la barre d'outils (en plus de P et Échap).
+    - Au départ, une bulle « Appuie sur la barre d'espace pour lancer le kite ! » reste affichée jusqu'à la sortie du kite.
+    - La fenêtre de jeu prend toute la largeur et la hauteur visible de l'écran. Les marges de Streamlit sont réduites et le choix de langue Streamlit n'est plus que sur la page Résultats, le jeu ayant ses propres boutons.
+  - **Corrections** : le drapeau suisse d'un vapeur CGN pouvait s'afficher en grand carré rouge près de la caméra.
+- **Vérification** :
+  - accueil ;
+  - onglets du classement (équipes, semaine, expert, CO₂) ;
+  - traversée débutant complète (bulle Espace, bouton Pause, arrivée, indice 146,392 t·s, 2 tentatives datées enregistrées) ;
+  - vues EPFL, Valais, Jet d'eau et pirate en italien à 1366 × 768 ;
+  - page Résultats en italien.
+  - Aucune erreur JavaScript.

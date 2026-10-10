@@ -50,7 +50,7 @@ const store = {
 };
 
 // Formats de nombres selon la langue choisie
-const LOCALES = { fr: "fr-FR", en: "en-GB", de: "de-CH" };
+const LOCALES = { fr: "fr-FR", en: "en-GB", de: "de-CH", it: "it-CH" };
 let LANG = "fr";
 const nf = (x, d) => Number(x).toLocaleString(LOCALES[LANG], { minimumFractionDigits: d, maximumFractionDigits: d });
 const fmt0 = x => nf(Math.round(x), 0);

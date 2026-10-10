@@ -23,8 +23,8 @@ function initSandbox() {
   const k = $("knobs");
   createKnob(k, { key: "speed", state: P, label: "kn_speed", min: 4, max: 10, step: 0.1, wheel: 0.5, def: 8, color: "#3fb894", color2: "#8fe0c8", keys: ["↑", "↓"], fmt: v => `${fmt1(v)}<i>${T("u_kn")}</i>`, onChange: recompute });
   createKnob(k, { key: "heading", state: P, label: "kn_heading", min: 0, max: 360, step: 1, wheel: 5, wrap: true, def: 250, color: "#4cbf7f", color2: "#8fe0c8", keys: ["←", "→"], fmt: v => `${Math.round(v)}°<i>${cardinal(v)}</i>`, onChange: recompute });
-  createKnob(k, { key: "windDir", state: P, label: "kn_winddir", min: 0, max: 360, step: 1, wheel: 5, wrap: true, def: 20, color: "#6aaee8", color2: "#9b87f5", keys: ["🖱"], fmt: v => `${Math.round(v)}°<i>${cardinal(v)}</i>`, onChange: recompute });
-  createKnob(k, { key: "windSpeed", state: P, label: "kn_windspeed", min: 0, max: 35, step: 1, wheel: 1, def: 14, color: "#9b87f5", color2: "#6aaee8", keys: ["🖱"], fmt: v => `${Math.round(v)}<i>${T("u_kn")}</i>`, onChange: recompute });
+  createKnob(k, { key: "windDir", state: P, label: "kn_winddir", min: 0, max: 360, step: 1, wheel: 5, wrap: true, def: 20, color: "#6aaee8", color2: "#3d5f94", keys: ["🖱"], fmt: v => `${Math.round(v)}°<i>${cardinal(v)}</i>`, onChange: recompute });
+  createKnob(k, { key: "windSpeed", state: P, label: "kn_windspeed", min: 0, max: 35, step: 1, wheel: 1, def: 14, color: "#3d5f94", color2: "#6aaee8", keys: ["🖱"], fmt: v => `${Math.round(v)}<i>${T("u_kn")}</i>`, onChange: recompute });
   $("kiteSwitch").addEventListener("click", toggleSandboxKite);
   const PRESETS = {
     ref: { speed: 8, heading: 250, windDir: 20, windSpeed: 14, kite: false }, slow: { speed: 6 },
@@ -369,9 +369,9 @@ function drawCompass(dt) {
   ctx.clearRect(0, 0, w, h);
   const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.47;
   const g = ctx.createRadialGradient(cx, cy, R * 0.1, cx, cy, R);
-  g.addColorStop(0, "#ffffff"); g.addColorStop(0.75, "#f4f1fc"); g.addColorStop(1, "#e7e2f6");
+  g.addColorStop(0, "#ffffff"); g.addColorStop(0.75, "#f1f4f9"); g.addColorStop(1, "#e1e7f1");
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = "rgba(124,108,240,.35)"; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = "rgba(31, 58, 104,.35)"; ctx.lineWidth = 1.2; ctx.stroke();
   const [wdx, wdy] = bdir(P.windDir + 180), wsp = P.windSpeed / 25;
   ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R - 2, 0, Math.PI * 2); ctx.clip();
   for (const p of windParticles) {
@@ -410,7 +410,7 @@ function drawCompass(dt) {
   ctx.fillStyle = "#a99c88"; ctx.fillRect(-s * 0.09, -s * 0.32, s * 0.18, s * 0.55);
   ctx.restore();
 }
-const GSTOPS = { gain: [[0, "#f58ea8"], [0.3, "#f2c14e"], [0.6, "#6fcf97"], [1, "#5fc9a8"]], kite: [[0, "#6aaee8"], [0.5, "#9b87f5"], [1, "#f59a5b"]] };
+const GSTOPS = { gain: [[0, "#f58ea8"], [0.3, "#f2c14e"], [0.6, "#6fcf97"], [1, "#5fc9a8"]], kite: [[0, "#6aaee8"], [0.5, "#3d5f94"], [1, "#f59a5b"]] };
 const gaugeVal = [0, 0, 0];
 function drawGauge(G_, frac, stops) {
   const { ctx, w, h } = G_;
@@ -460,7 +460,7 @@ function drawCurve() {
     ctx.beginPath();
     data.forEach((d, i) => i ? ctx.lineTo(X(d.v), Y(d.no)) : ctx.moveTo(X(d.v), Y(d.no)));
     for (let i = data.length - 1; i >= 0; i--) ctx.lineTo(X(data[i].v), Y(data[i].kite));
-    ctx.closePath(); ctx.fillStyle = "rgba(155,135,245,.18)"; ctx.fill();
+    ctx.closePath(); ctx.fillStyle = "rgba(61, 95, 148,.18)"; ctx.fill();
   }
   ctx.setLineDash([3, 4]); ctx.strokeStyle = "rgba(38,43,69,.35)";
   ctx.beginPath(); ctx.moveTo(pl, Y(S.dec.E0)); ctx.lineTo(w - pr, Y(S.dec.E0)); ctx.stroke(); ctx.setLineDash([]);
@@ -480,7 +480,7 @@ function drawCurve() {
   ctx.beginPath(); ctx.arc(cur.x, cur.y, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   ctx.font = '500 10px Inter, sans-serif'; ctx.textBaseline = "middle"; ctx.textAlign = "left";
   const items = [[T("c_nokite"), "#f07d9c"]];
-  if (P.kite) items.push([T("c_kite"), "#3fb894"], [T("c_gain"), "#9b87f5"]);
+  if (P.kite) items.push([T("c_kite"), "#3fb894"], [T("c_gain"), "#3d5f94"]);
   let lx = pl;
   for (const [txt, col] of items) { ctx.fillStyle = col; ctx.fillRect(lx, 5, 12, 3); ctx.fillStyle = "#5a5f7c"; ctx.fillText(txt, lx + 16, 7); lx += 26 + ctx.measureText(txt).width; }
 }

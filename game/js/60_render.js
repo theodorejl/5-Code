@@ -286,14 +286,56 @@ function drawLandmark(ctx, lm, p, s, L, fog, t) {
       ctx.fillStyle = c("#3f9b6e"); ctx.fillRect(-0.8 * S, -5.4 * S, 1.6 * S, 0.9 * S);
       break;
     }
-    case "jet": {   // Jet d'eau : colonne d'eau et panache qui dérive avec le vent
-      const H = 28 * S, sway = Math.sin(t * 0.7) * 0.6 * S;
-      const g = ctx.createLinearGradient(0, 0, 0, -H);
-      g.addColorStop(0, "rgba(255,255,255,.95)"); g.addColorStop(1, "rgba(255,255,255,.55)");
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.moveTo(-0.7 * S, 0); ctx.quadraticCurveTo(-0.3 * S, -H * 0.6, sway - 0.2 * S, -H); ctx.lineTo(sway + 0.4 * S, -H); ctx.quadraticCurveTo(0.5 * S, -H * 0.6, 0.7 * S, 0); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = "rgba(255,255,255,.35)";
-      for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.ellipse(sway + (1.5 + i * 0.9) * S, -H + i * 1.6 * S, (1.2 + i * 0.5) * S, (0.8 + i * 0.3) * S, 0, 0, Math.PI * 2); ctx.fill(); }
+    case "jet": {   // Jet d'eau : colonne lumineuse, panache poussé par le vent, bruine, arc-en-ciel au soleil
+      const H = 42 * S, wind = Math.sin(t * 0.35) * 0.5 + 1.2, sway = Math.sin(t * 0.9) * 0.35 * S;
+      // halo de bruine autour du sommet
+      const halo = ctx.createRadialGradient(sway + 3 * S, -H * 0.9, 0, sway + 3 * S, -H * 0.9, 9 * S);
+      halo.addColorStop(0, "rgba(255,255,255,.45)"); halo.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(sway + 3 * S, -H * 0.9, 9 * S, 0, Math.PI * 2); ctx.fill();
+      // arc-en-ciel discret dans le panache (seulement par beau temps)
+      if (L.sunE > 2) {
+        ctx.save(); ctx.globalAlpha = 0.22; ctx.lineWidth = 0.55 * S;
+        ["#ff6b6b", "#ffb36b", "#ffe66b", "#7be08a", "#6bb8ff", "#9a7bff"].forEach((col, i) => {
+          ctx.strokeStyle = col; ctx.beginPath(); ctx.arc(sway + 6 * S, -H * 0.42, (7.5 - i * 0.55) * S, Math.PI * 1.05, Math.PI * 1.75); ctx.stroke();
+        });
+        ctx.restore();
+      }
+      // colonne : cœur très blanc, bords translucides, légère courbure sous le vent
+      for (const [wd, al] of [[1.25, 0.28], [0.75, 0.6], [0.32, 0.98]]) {
+        const g = ctx.createLinearGradient(0, 0, 0, -H);
+        g.addColorStop(0, `rgba(255,255,255,${al})`); g.addColorStop(0.85, `rgba(240,248,255,${al * 0.85})`); g.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.moveTo(-wd * S, 0);
+        ctx.quadraticCurveTo(-wd * 0.5 * S, -H * 0.6, sway + (wind - wd * 0.6) * S, -H);
+        ctx.lineTo(sway + (wind + wd * 0.6) * S, -H);
+        ctx.quadraticCurveTo(wd * 0.5 * S, -H * 0.6, wd * S, 0); ctx.closePath(); ctx.fill();
+      }
+      // panache : gouttes qui retombent en arc sous le vent
+      for (let i = 0; i < 26; i++) {
+        const u = ((t * 0.45 + i / 26) % 1), px = sway + wind * S + u * 11 * S * wind, py = -H + u * u * H * 0.75 + Math.sin(i * 7.1) * S;
+        ctx.fillStyle = `rgba(255,255,255,${0.5 * (1 - u)})`;
+        ctx.beginPath(); ctx.ellipse(px, py, (0.6 + u * 1.6) * S, (0.4 + u * 1.0) * S, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      // gerbe à la base et jetée
+      ctx.fillStyle = "rgba(255,255,255,.7)"; ctx.beginPath(); ctx.ellipse(0, 0, 3.2 * S, 0.8 * S, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = c("#bfc3c9"); ctx.fillRect(-1 * S, 0, 14 * S, 0.7 * S);
+      break;
+    }
+    case "epfl": {   // campus de l'EPFL : Rolex Learning Center (dalle blanche ondulée percée de patios) et bâtiments
+      ctx.fillStyle = c("#b9c0c8"); ctx.fillRect(-26 * S, -7 * S, 9 * S, 7 * S); ctx.fillRect(16 * S, -8 * S, 11 * S, 8 * S);
+      ctx.fillStyle = c("#8f99a6"); for (let i = 0; i < 5; i++) ctx.fillRect((-25 + i * 1.7) * S, -6 * S, 0.8 * S, 5 * S);
+      ctx.fillStyle = "#e2001a"; ctx.font = `800 ${Math.max(5, 2.6 * S)}px "Inter Tight", Arial, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("EPFL", 21.5 * S, -5.6 * S);
+      const wave = x => -2.4 * S - 1.5 * S * Math.sin((x + 16) / 32 * Math.PI * 2) * Math.sin((x + 16) / 32 * Math.PI);
+      ctx.fillStyle = c("#f6f5f0");
+      ctx.beginPath(); ctx.moveTo(-16 * S, 0);
+      for (let x = -16; x <= 16; x += 1) ctx.lineTo(x * S, wave(x) - 1.4 * S);
+      ctx.lineTo(16 * S, 0); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = c("#7e8a99"); ctx.lineWidth = Math.max(0.6, 0.35 * S);   // bandeau vitré
+      ctx.beginPath(); for (let x = -16; x <= 16; x += 1) { const y = wave(x) + 0.2 * S; x === -16 ? ctx.moveTo(x * S, y) : ctx.lineTo(x * S, y); } ctx.stroke();
+      ctx.fillStyle = c("#5c6a7a");   // patios ovales
+      for (const [px, pw] of [[-9, 2.6], [-2, 3.4], [5, 2.2], [11, 2.8]]) { ctx.beginPath(); ctx.ellipse(px * S, wave(px) - 0.4 * S, pw * S, 0.55 * S, 0, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = c("#7fae6a"); ctx.fillRect(-28 * S, -0.4 * S, 58 * S, 0.6 * S);
       break;
     }
   }
@@ -398,7 +440,7 @@ function drawMinimap(mm, boat, tau, ghosts) {
   ctx.fillStyle = gr; ctx.fillRect(0, 0, w, h);
   for (const g of GUSTS) { if (tau < g.t0 || tau > g.t0 + g.dur) continue; const [gx, gy] = gustCenter(g, tau); ctx.fillStyle = windColor(18 + g.boost); ctx.globalAlpha = 0.6 * gustEnv(g, tau); ctx.beginPath(); ctx.arc(X(gx), Y(gy), Math.max(1.5, g.r * MM.sc), 0, Math.PI * 2); ctx.fill(); }
   ctx.globalAlpha = 1;
-  ctx.setLineDash([3, 3]); ctx.strokeStyle = "rgba(124,108,240,.7)";
+  ctx.setLineDash([3, 3]); ctx.strokeStyle = "rgba(31, 58, 104,.7)";
   ctx.beginPath(); COURSE.forEach(([x, y], i) => i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y))); ctx.stroke(); ctx.setLineDash([]);
   if (ghosts) ghosts.forEach((gh, gi) => {
     ctx.strokeStyle = GHOST_COLS[gi]; ctx.lineWidth = 1; ctx.globalAlpha = 0.7;
@@ -408,6 +450,6 @@ function drawMinimap(mm, boat, tau, ghosts) {
   ctx.fillStyle = "#262b45"; ctx.font = "11px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillText("🏁", X(FINISH.x), Y(FINISH.y) - 6);
   ctx.save(); ctx.translate(X(boat.x), Y(boat.y)); ctx.rotate(rad(boat.hdg));
-  ctx.fillStyle = "#7c6cf0"; ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(4, 5); ctx.lineTo(-4, 5); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#1f3a68"; ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(4, 5); ctx.lineTo(-4, 5); ctx.closePath(); ctx.fill();
   ctx.restore();
 }

@@ -3,6 +3,19 @@
 // ================================================================
 let VIEW = "home";
 const seenHelp = {};
+// La traversée occupe toute la hauteur visible de la fenêtre du navigateur (sous la barre Streamlit)
+function fitRace() {
+  let vh = window.innerHeight, top = 0;
+  try {
+    const fe = window.frameElement;
+    if (fe) { vh = window.parent.innerHeight; top = fe.getBoundingClientRect().top + window.parent.scrollY; }
+  } catch { /* parent d'une autre origine : on garde la fenêtre de l'iframe */ }
+  const bar = document.querySelector(".topbar"), dash = $("databar");
+  const used = top + (bar ? bar.offsetHeight : 50) + (dash ? dash.offsetHeight : 70) + 30;
+  const w = $("app").clientWidth;
+  const h = clamp(vh - used, 420, w / 1.45);
+  document.documentElement.style.setProperty("--race-h", `${Math.round(h)}px`);
+}
 function goView(v) {
   if ((RACE.state === "run" || RACE.state === "pause" || RACE.state === "intro") && VIEW !== v) toast(T("race_abandoned"), "warn", null);
   VIEW = v;
@@ -24,6 +37,7 @@ function goView(v) {
     recompute();
     if (!seenHelp.sandbox) { seenHelp.sandbox = true; openHelp("sandbox"); }
   }
+  if (race) fitRace();
   WORLD.resize(); MINI.resize();
 }
 
@@ -103,6 +117,9 @@ function startIntro() {
 function togglePause() {
   if (RACE.state === "run") { RACE.state = "pause"; KEYS.clear(); showOverlay("ovPause"); }
   else if (RACE.state === "pause") { RACE.state = "run"; hideOverlay(); }
+  $("tPause").classList.toggle("on", RACE.state === "pause");
+  $("tPauseIco").textContent = RACE.state === "pause" ? "▶" : "⏸";
+  $("tPauseTxt").textContent = T(RACE.state === "pause" ? "resume" : "pause");
 }
 let boardReturn = null;
 function openBoard() {
@@ -110,7 +127,7 @@ function openBoard() {
   boardReturn = overlay;
   BOARD.mode = VIEW === "expert" ? "expert" : BOARD.mode;
   showOverlay("ovBoard");
-  renderBoard($("modalBoard"), {});
+  renderBoards();
 }
 function closeBoard() {
   const back = boardReturn; boardReturn = null;
@@ -233,15 +250,15 @@ function drawCards() {
       for (const [x, y] of LAKE_POLY) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
       const sc = Math.min((w - 10) / (x1 - x0), (h - 10) / (y1 - y0)), ox = (w - (x1 - x0) * sc) / 2 - x0 * sc, oy = (h - (y1 - y0) * sc) / 2 + y1 * sc;
       ctx.fillStyle = "#8fc0d6"; ctx.beginPath(); LAKE_POLY.forEach(([x, y], i) => i ? ctx.lineTo(ox + x * sc, oy - y * sc) : ctx.moveTo(ox + x * sc, oy - y * sc)); ctx.closePath(); ctx.fill();
-      ctx.setLineDash([3, 3]); ctx.strokeStyle = "#7c6cf0"; ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]); ctx.strokeStyle = "#1f3a68"; ctx.lineWidth = 1.5;
       ctx.beginPath(); COURSE.forEach(([x, y], i) => i ? ctx.lineTo(ox + x * sc, oy - y * sc) : ctx.moveTo(ox + x * sc, oy - y * sc)); ctx.stroke(); ctx.setLineDash([]);
       for (const gst of GUSTS.slice(0, 24)) { ctx.fillStyle = windColor(16 + gst.boost); ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.arc(ox + gst.x0 * sc, oy - gst.y0 * sc, 3, 0, Math.PI * 2); ctx.fill(); }
       ctx.globalAlpha = 1; ctx.font = "13px sans-serif"; ctx.fillText("🏁", ox + FINISH.x * sc - 6, oy - FINISH.y * sc + 4);
     } else {
-      ctx.fillStyle = "#f4f1fb"; ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#f2f4f9"; ctx.fillRect(0, 0, w, h);
       const cx = w / 2, cy = h - 6, R = Math.min(w / 2 - 8, h - 12);
       for (let rr = R; rr > 0; rr -= 2) { ctx.fillStyle = colorAt([[0, "#a8e6d3"], [0.3, "#f7e3a1"], [0.6, "#ffc9a8"], [1, "#f58ea8"]], Math.sqrt(1 - (rr / R) ** 2)); ctx.beginPath(); ctx.arc(cx, cy, rr, Math.PI, 0); ctx.fill(); }
-      ctx.strokeStyle = "rgba(124,108,240,.8)"; ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(31, 58, 104,.8)"; ctx.lineWidth = 2;
       ctx.beginPath(); for (let a = 0; a <= Math.PI * 2 + 0.01; a += 0.1) { const x = cx + Math.sin(a) * R * 0.5, y = cy - R * 0.32 - Math.sin(2 * a) * R * 0.14; a ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
       drawParagliderFront(ctx, cx + R * 0.35, cy - R * 0.38, h * 0.36, 0.5, 1);
     }

@@ -1,9 +1,9 @@
 // ================================================================
-//  TRADUCTIONS (français, anglais, allemand)
+//  TRADUCTIONS (français, anglais, allemand, italien)
 //  Le dictionnaire est rempli par 06_strings.js. Dans le HTML :
 //  data-i = texte, data-ih = HTML (textes internes uniquement), data-ip = texte indicatif d'un champ.
 // ================================================================
-const I18N = { fr: {}, en: {}, de: {} };
+const I18N = { fr: {}, en: {}, de: {}, it: {} };
 function T(key, vars) {
   let s = I18N[LANG][key] ?? I18N.fr[key] ?? key;
   if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] ?? m));

@@ -16,8 +16,8 @@ storage.init()
 st.markdown(
     """
     <style>
-      .stApp { background: #f6f4fb; }
-      .block-container { padding-top: 3.2rem; padding-bottom: 1rem; max-width: 1800px; }
+      .stApp { background: #f4f6fa; }
+      .block-container { padding: 3rem 0.4rem 0.5rem; max-width: 100%; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -29,16 +29,6 @@ if "lang" not in st.session_state:
     st.session_state["lang"] = q if q in LANGS else "fr"
     st.session_state["lang_ctrl"] = st.session_state["lang"]
 
-
-def _set_lang():
-    new = st.session_state.get("lang_ctrl") or st.session_state["lang"]
-    st.session_state["lang"] = new
-    st.query_params["lang"] = new
-
-
-_, right = st.columns([6, 1])
-with right:
-    st.segmented_control(t("lang"), list(LANGS), format_func=LANGS.get, key="lang_ctrl", on_change=_set_lang, label_visibility="collapsed")
 
 nav = st.navigation(
     [
