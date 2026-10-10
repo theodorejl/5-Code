@@ -144,6 +144,14 @@
   .field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 150px; }
   .field label { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
   .modal input { font: 500 14px var(--mono); color: var(--text); background: var(--panel2); border: 1px solid var(--line2); border-radius: 9px; padding: 9px 11px; outline: none; width: 100%; }
+  .modal select { font: 500 14px var(--mono); color: var(--text); background: var(--panel2); border: 1px solid var(--line2); border-radius: 9px; padding: 9px 11px; outline: none; width: 100%; cursor: pointer; }
+  .modal select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 108, 240, .18); }
+  .read-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin: 6px 0 12px; }
+  .read-list div { font-size: 11.5px; line-height: 1.4; color: #4a4f6c; padding-left: 10px; border-left: 3px solid var(--line2); }
+  .read-list b { color: var(--text); }
+  .pager { display: flex; gap: 5px; align-items: center; margin-right: auto; }
+  .pager span { width: 7px; height: 7px; border-radius: 50%; background: #dcd7ea; }
+  .pager span.on { background: var(--accent); }
   .modal input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 108, 240, .18); background: #fff; }
   .err { color: #c94468; font-size: 11.5px; min-height: 1.3em; margin-top: 6px; }
   .help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin: 8px 0 12px; }
@@ -358,7 +366,10 @@
           <p>Ton pseudo et ton équipe apparaîtront dans les classements de tous les joueurs.</p>
           <div class="row">
             <div class="field"><label for="nameInput">Pseudo</label><input id="nameInput" maxlength="16" placeholder="Ton pseudo"></div>
-            <div class="field"><label for="teamInput">Équipe (facultatif)</label><input id="teamInput" maxlength="20" placeholder="Ton équipe" list="teamList"><datalist id="teamList"></datalist></div>
+            <div class="field"><label for="teamSelect">Équipe</label><select id="teamSelect"></select></div>
+          </div>
+          <div class="row" id="teamNewRow" hidden style="margin-top:8px">
+            <div class="field"><label for="teamNew">Nom de la nouvelle équipe</label><input id="teamNew" maxlength="20" placeholder="Ex. Les Mouettes"></div>
           </div>
           <div class="err" id="nameErr"></div>
           <p class="note only-kite" style="margin-bottom:8px">Astuce : règle la <b>surface du kite</b> et la <b>longueur de ligne</b> avec les potards avant de commencer (elles sont bloquées pendant la session).</p>
@@ -372,7 +383,8 @@
       <!-- Tutoriel -->
       <div class="overlay" id="ovHelp" hidden>
         <div class="modal" style="width:min(660px,100%)">
-          <p class="eyebrow">Tutoriel <b>· commandes</b></p>
+          <p class="eyebrow" id="helpEyebrow">Briefing <b>· 1/2 · but et touches</b></p>
+          <div data-page="1">
           <div class="only-sandbox">
             <h2>Bac à sable : <em>explore</em> librement</h2>
             <p>Tourne les potards ou utilise le clavier pour voir l'effet de la vitesse, du cap et du vent sur les émissions. Les missions te guident.</p>
@@ -407,7 +419,36 @@
           </div>
           <p class="only-kite">Potards : <b>surface du kite</b> (5 à 500 m²) et <b>longueur de ligne</b> (25 à 1 000 m). Plus la ligne est longue, plus le kite vole haut dans un vent fort… mais plus il est lent à manœuvrer.</p>
           <p class="not-kite">À la souris : tourne les <b>potards</b> (glisser ou molette), double-clic pour la valeur par défaut. Pendant le défi, la météo est imposée.</p>
-          <div class="row" style="justify-content:flex-end"><button class="btn primary" id="helpOk">Compris ⏎</button></div>
+          </div>
+          <div data-page="2" hidden>
+            <h2>Ce que tu vois <em>à l'écran</em></h2>
+            <div class="read-list only-sandbox">
+              <div><b>Étiquettes en haut</b> : vitesse et cap du navire, vent réel, vent apparent, traction du kite.</div>
+              <div><b>Mission</b> (en bas à droite) : un objectif à atteindre, qui passe au vert quand il est réussi.</div>
+              <div><b>02 Boussole</b> : cap (vert), vent réel (bleu), vent apparent (pointillés), traction du kite (orange).</div>
+              <div><b>03 Jauges</b> : carburant et CO₂ économisés par rapport à la référence (14 nœuds, sans kite).</div>
+              <div><b>05 Barres</b> : quelle part du gain vient du ralentissement et quelle part vient du kite.</div>
+              <div><b>06–07 Courbes</b> : CO₂ du trajet selon la vitesse et loi du cube.</div>
+            </div>
+            <div class="read-list only-game">
+              <div><b>Étiquettes en haut</b> : vitesse et cap, vent réel, vent apparent, traction du kite.</div>
+              <div><b>Panneau en bas à droite</b> : temps écoulé, arrivée prévue (rouge = en retard), score live = CO₂ d'avance sur le navire de référence.</div>
+              <div><b>Prévision</b> : météo à 12 h et alerte tempête quelques heures avant.</div>
+              <div><b>Barre de route</b> : ton navire (rond plein) face au navire de référence (rond pointillé).</div>
+              <div><b>02 Boussole</b> : la ligne pointillée violette est la route vers New York.</div>
+              <div><b>03 Jauges et 05–07</b> : gains dans les conditions du moment.</div>
+            </div>
+            <div class="read-list only-kite">
+              <div><b>Étiquettes en haut</b> : taille du kite et ligne, vent à l'altitude du kite, zone de vol (% de la puissance max), tension de la ligne.</div>
+              <div><b>Fenêtre colorée dans le ciel</b> : rose = zone de puissance, jaune = faible, vert = bord et zénith (ça ne tire presque plus).</div>
+              <div><b>Panneau en bas à droite</b> : temps restant, CO₂ évité, nombre de crashs et un conseil en direct.</div>
+              <div><b>03 Jauges</b> : tension (rouge = proche de la limite de 300 kN), zone de vol, poussée utile vers l'avant.</div>
+              <div><b>05 Schéma</b> : la fenêtre vue de face avec la trajectoire de ton kite.</div>
+              <div><b>06–07</b> : tension au fil du temps et effet de la taille du kite et de la longueur de ligne.</div>
+            </div>
+            <p class="only-kite"><b>Petit kite / ligne courte</b> : très vif mais peu puissant. <b>Grand kite / ligne longue</b> : puissant mais lent à tourner, et la ligne casse vite au centre de la fenêtre.</p>
+          </div>
+          <div class="row" style="justify-content:flex-end"><div class="pager"><span id="pg1" class="on"></span><span id="pg2"></span></div><button class="btn" id="helpBack" hidden>◀ Retour</button><button class="btn primary" id="helpOk">Suivant ▶</button></div>
         </div>
       </div>
 
@@ -730,6 +771,13 @@
     return { Wk, Wa: Math.hypot(ax, az), down: deg(Math.atan2(ax, az)) };
   }
   const lineLD = L => 3.2 / (1 + L / 1200);   // la traînée de la ligne réduit la finesse
+  // Maniabilité : un petit kite réagit vite (faible inertie), un grand kite met du temps à tourner et glisse
+  // dans ses virages ; une ligne longue transmet les ordres avec retard.
+  function kiteHandling(area, L) {
+    const size = Math.sqrt(area), line = 1 + L / 500;
+    const damp = 0.9 + 9 / size;                       // 5 m² : 4,9 (réponse ~0,2 s) · 500 m² : 1,3 (~0,8 s)
+    return { damp, acc: damp * 95 / line, cap: Math.min(150, 190 / (1 + size / 7) / line + 6) };
+  }
   function kiteReset(full) {
     const air = kiteAir(KS.W10 || 19, KS.fromRel, 200);
     KS.down = air.down;
@@ -760,14 +808,13 @@
       const iy = (held.has("ArrowUp") ? 1 : 0) - (held.has("ArrowDown") ? 1 : 0);
       let phi = norm180(KS.az - KS.down);
       const wf0 = Math.max(0, Math.cos(rad(KS.theta)) * Math.cos(rad(phi)));
-      const agility = 1 / (1 + Math.sqrt(P.area) / 14);   // un grand kite tourne lentement
-      const acc = 340 * agility;
-      KS.vphi += (ix * acc - KS.vphi * 2.2) * dt;
-      KS.vth += (iy * acc - KS.vth * 2.2) * dt;
-      if (!ix && !iy) KS.vth += 9 * dt;                   // sans action, il remonte vers le zénith
+      const H = kiteHandling(P.area, L);
+      KS.vphi += (ix * H.acc - KS.vphi * H.damp) * dt;
+      KS.vth += (iy * H.acc - KS.vth * H.damp) * dt;
+      if (!ix && !iy) KS.vth += (45 - KS.theta) * 0.35 * dt;   // sans action, il se stabilise vers 45°
       const LD = lineLD(L);
       const vtMax = LD * KS.Wa * wf0 + 0.3 * KS.Wa;        // vitesse maxi du kite en travers du vent (m/s)
-      const omMax = Math.min(120, deg(vtMax / L) * KCFG.FAST);
+      const omMax = Math.min(H.cap, deg(vtMax / L) * KCFG.FAST);
       const sp = Math.hypot(KS.vphi, KS.vth);
       if (sp > omMax) { KS.vphi *= omMax / sp; KS.vth *= omMax / sp; }
       KS.az += KS.vphi * dt / Math.max(Math.cos(rad(KS.theta)), 0.25);
@@ -913,7 +960,7 @@
     ideal: { heading: 270, windDir: 20, windSpeed: 30, kite: true }, storm: { heading: 270, windDir: 270, windSpeed: 28 }
   };
   document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => setParams(PRESETS[b.dataset.preset])));
-  const KPRESETS = { small: { area: 25 }, big: { area: 450 }, short: { line: 60 }, long: { line: 800 } };
+  const KPRESETS = { small: { area: 15 }, big: { area: 480 }, short: { line: 40 }, long: { line: 900 } };
   document.querySelectorAll("[data-kpreset]").forEach(b => b.addEventListener("click", () => {
     if (inSession()) { toast("Surface et ligne sont bloquées pendant la session", "warn", "lockk"); return; }
     for (const [k, v] of Object.entries(KPRESETS[b.dataset.kpreset])) knobs[k].set(v);
@@ -1104,16 +1151,17 @@
     $("lineTable").innerHTML = `<tr><th>Ligne</th><th>Altitude</th><th>Vent</th><th>Agilité</th></tr>` + lines.map(L => {
       const alt = KCFG.ANCHOR[1] + L * Math.sin(rad(30));
       const air = kiteAir(W, 180, alt);
-      return `<tr class="${L === curL ? "cur" : ""}"><td>${L} m</td><td>${fmt0(alt)} m</td><td>${fmt0(air.Wk / KN)} nd</td><td>${fmt0(Math.min(120, deg(lineLD(L) * air.Wa / L) * KCFG.FAST))}°/s</td></tr>`;
+      const om = Math.min(kiteHandling(P.area, L).cap, deg((lineLD(L) + 0.3) * air.Wa / L) * KCFG.FAST);
+      return `<tr class="${L === curL ? "cur" : ""}"><td>${L} m</td><td>${fmt0(alt)} m</td><td>${fmt0(air.Wk / KN)} nd</td><td>${fmt0(om)}°/s</td></tr>`;
     }).join("");
     const areas = [5, 50, 150, 300, 500];
     const curA = areas.reduce((a, b) => Math.abs(b - P.area) < Math.abs(a - P.area) ? b : a);
     const air = kiteAir(W, 180, KCFG.ANCHOR[1] + P.line * 0.5);
     const LD = lineLD(P.line);
-    $("areaTable").innerHTML = `<tr><th>Surface</th><th>Immobile</th><th>En 8</th><th>Risque</th></tr>` + areas.map(A => {
-      const st = 0.5 * RHO * A * air.Wa * air.Wa / 1000;
-      const dyn = st * (1 + LD * LD);
-      return `<tr class="${A === curA ? "cur" : ""}"><td>${A} m²</td><td>${fmt0(st)} kN</td><td>${fmt0(dyn)} kN</td><td>${dyn > KCFG.TMAX ? "⚠ surcharge" : "ok"}</td></tr>`;
+    $("areaTable").innerHTML = `<tr><th>Surface</th><th>En 8</th><th>Virage</th><th>Risque</th></tr>` + areas.map(A => {
+      const dyn = 0.5 * RHO * A * air.Wa * air.Wa * (1 + LD * LD) / 1000;
+      const turn = 1 / kiteHandling(A, P.line).damp;
+      return `<tr class="${A === curA ? "cur" : ""}"><td>${A} m²</td><td>${fmt0(dyn)} kN</td><td>${fmt1(turn)} s</td><td>${dyn > KCFG.TMAX ? "⚠ surcharge" : "ok"}</td></tr>`;
     }).join("");
   }
 
@@ -1143,6 +1191,7 @@
     if (mode === "kite") {
       KS.clock = 0; kiteReset(true); kiteTablesDirty = true;
       toast("Entraîne-toi avec les flèches, puis ▶ Jouer pour une session chronométrée", "", "kiteIntro", 60);
+      if (!G.seenHelp.kiteIntro) { G.seenHelp.kiteIntro = true; helpReturn = null; showOverlay("ovHelp"); setHelpPage(1); }
     }
     knobs.windDir.render();
   }
@@ -1158,22 +1207,54 @@
     $("nameEyebrow").textContent = mode === "kite" ? "Pilote de kite · session de 90 s" : "Défi Atlantique · Rotterdam → New York";
     showOverlay("ovName");
     $("nameInput").value = G.name || store.get(LS_NAME) || "";
-    $("teamInput").value = G.team || store.get(LS_TEAM) || "";
-    const dl = $("teamList");
-    dl.textContent = "";
-    [...new Set(BOARD.list.map(e => e.team).filter(Boolean))].slice(0, 30).forEach(t => { const o = document.createElement("option"); o.value = t; dl.appendChild(o); });
+    fillTeams(G.team || store.get(LS_TEAM) || "");
     $("nameErr").textContent = "";
     setTimeout(() => { $("nameInput").focus(); $("nameInput").select(); }, 30);
   }
+  // Équipes existantes (toutes parties confondues) avec leur nombre de membres
+  function knownTeams() {
+    const t = new Map();
+    for (const e of BOARD.list) {
+      if (!e.team) continue;
+      const k = e.team.toLowerCase();
+      if (!t.has(k)) t.set(k, { name: e.team, members: new Set() });
+      t.get(k).members.add(e.name.toLowerCase());
+    }
+    return [...t.values()].sort((a, b) => b.members.size - a.members.size || a.name.localeCompare(b.name, "fr"));
+  }
+  function fillTeams(current) {
+    const sel = $("teamSelect");
+    sel.textContent = "";
+    const add = (value, label) => { const o = document.createElement("option"); o.value = value; o.textContent = label; sel.appendChild(o); };
+    add("", "— Sans équipe —");
+    const teams = knownTeams();
+    teams.forEach(t => add("team:" + t.name, `${t.name} · ${t.members.size} membre${t.members.size > 1 ? "s" : ""}`));
+    add("new", "＋ Créer une nouvelle équipe…");
+    const match = teams.find(t => t.name.toLowerCase() === String(current).toLowerCase());
+    if (match) sel.value = "team:" + match.name;
+    else if (current) { sel.value = "new"; $("teamNew").value = current; }
+    else sel.value = "";
+    $("teamNewRow").hidden = sel.value !== "new";
+  }
+  $("teamSelect").addEventListener("change", () => {
+    $("teamNewRow").hidden = $("teamSelect").value !== "new";
+    if ($("teamSelect").value === "new") setTimeout(() => $("teamNew").focus(), 0);
+  });
   const cleanText = (s, max) => String(s ?? "").replace(/[\u0000-\u001f\u007f]/g, "").replace(/\s+/g, " ").trim().slice(0, max);
   $("nameForm").addEventListener("submit", e => {
     e.preventDefault();
-    const name = cleanText($("nameInput").value, 16), team = cleanText($("teamInput").value, 20);
+    const name = cleanText($("nameInput").value, 16);
+    const choice = $("teamSelect").value;
+    let team = choice === "new" ? cleanText($("teamNew").value, 20) : choice.startsWith("team:") ? choice.slice(5) : "";
     if (!name) { $("nameErr").textContent = "Écris un pseudo pour enregistrer ton score."; return; }
+    if (choice === "new" && !team) { $("nameErr").textContent = "Donne un nom à ta nouvelle équipe (ou choisis « Sans équipe »)."; return; }
+    // si l'équipe « créée » existe déjà, on rejoint l'existante (même orthographe pour tout le monde)
+    const existing = knownTeams().find(t => t.name.toLowerCase() === team.toLowerCase());
+    if (existing) team = existing.name;
     G.name = name; G.team = team; store.set(LS_NAME, name); store.set(LS_TEAM, team);
     $("playerChip").hidden = false; $("playerChip").textContent = team ? `${name} · ${team}` : name;
     if (document.activeElement) document.activeElement.blur();
-    if (!G.seenHelp[G.mode]) { G.seenHelp[G.mode] = true; G.state = "help"; showOverlay("ovHelp"); }
+    if (!G.seenHelp[G.mode]) { G.seenHelp[G.mode] = true; G.state = "help"; showOverlay("ovHelp"); setHelpPage(1); }
     else countdown();
   });
   $("nameCancel").addEventListener("click", () => { if (G.mode === "kite") { G.state = "practice"; hideOverlay(); } else setMode("sandbox"); });
@@ -1420,11 +1501,20 @@
   // ================================================================
   //  AIDE, VUES ET CLAVIER
   // ================================================================
-  let helpReturn = null;
+  let helpReturn = null, helpPage = 1;
+  function setHelpPage(n) {
+    helpPage = n;
+    document.querySelectorAll("#ovHelp [data-page]").forEach(el => { el.hidden = el.dataset.page !== String(n); });
+    $("helpEyebrow").innerHTML = n === 1 ? "Briefing <b>· 1/2 · but et touches</b>" : "Briefing <b>· 2/2 · lire l'écran</b>";
+    $("pg1").classList.toggle("on", n === 1); $("pg2").classList.toggle("on", n === 2);
+    $("helpBack").hidden = n === 1;
+    $("helpOk").textContent = n === 1 ? "Suivant ▶" : (G.state === "help" ? "C'est parti ⏎" : "Compris ⏎");
+  }
+  function helpNext() { if (helpPage === 1) setHelpPage(2); else closeHelp(); }
   function openHelp() {
     if (overlay === "ovHelp") return closeHelp();
     if (G.state === "run") { G.state = "pause"; held.clear(); }
-    helpReturn = overlay; showOverlay("ovHelp");
+    helpReturn = overlay; showOverlay("ovHelp"); setHelpPage(1);
   }
   function closeHelp() {
     if (G.state === "help") { countdown(); return; }
@@ -1434,7 +1524,8 @@
     else hideOverlay();
   }
   $("btnHelp").addEventListener("click", openHelp);
-  $("helpOk").addEventListener("click", closeHelp);
+  $("helpOk").addEventListener("click", helpNext);
+  $("helpBack").addEventListener("click", () => setHelpPage(1));
   function toggleView() { VIEW = VIEW === "third" ? "cabin" : "third"; $("viewTxt").textContent = VIEW === "third" ? "Vue 3e personne" : "Vue cabine"; FW.trail.length = 0; }
   function toggleWindow() { SHOW_WINDOW = !SHOW_WINDOW; $("winBtn").classList.toggle("on", SHOW_WINDOW); }
   $("viewBtn").addEventListener("click", toggleView);
@@ -1444,11 +1535,13 @@
   $("stage").addEventListener("pointerdown", () => window.focus());
   const ARROWS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
   window.addEventListener("keydown", e => {
-    if (e.target.tagName === "INPUT") return;
+    if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
     if (e.target.closest && e.target.closest(".knob svg")) return;
     const k = e.key;
     if (k === "h" || k === "H" || k === "?") { e.preventDefault(); openHelp(); return; }
-    if (overlay === "ovHelp" && (k === "Enter" || k === "Escape")) { e.preventDefault(); closeHelp(); return; }
+    if (overlay === "ovHelp" && k === "Enter") { e.preventDefault(); helpNext(); return; }
+    if (overlay === "ovHelp" && k === "Escape") { e.preventDefault(); closeHelp(); return; }
+    if (overlay === "ovHelp" && (k === "ArrowRight" || k === "ArrowLeft")) { e.preventDefault(); setHelpPage(k === "ArrowRight" ? 2 : 1); return; }
     if (overlay === "ovBoard" && (k === "Escape" || k === "Enter")) { e.preventDefault(); closeBoard(); return; }
     if (overlay === "ovEnd" && k === "Enter") { e.preventDefault(); startFlow(); return; }
     if ((G.state === "run" || G.state === "pause") && (k === "p" || k === "P" || k === "Escape")) { e.preventDefault(); togglePause(); return; }
@@ -1784,7 +1877,7 @@
     const hyF = VIEW === "cabin" ? 0.6 : 0.64;
     const zen = deg(Math.atan2(A[1] + L - pos.y, A[2] - pos.z));
     const edge = deg(Math.atan2(L, A[2] - pos.z)) + 25;
-    const k = clamp(Math.min(0.88 * h * hyF / Math.max(zen, 5), 0.9 * (w / 2) / Math.max(edge, 5)), 2.2, 6.5);
+    const k = clamp(Math.min(0.74 * h * hyF / Math.max(zen, 5), 0.9 * (w / 2) / Math.max(edge, 5)), 2.2, 6.5);
     return makeCam(w, h, pos, k, hyF);
   }
 
@@ -1850,8 +1943,7 @@
     cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
     const ctx = cv.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const cabin = cam.pos.z > 10;
-    const zs = cabin ? 24 : 0;
+    const zs = Math.max(0, cam.pos.z + 4);   // on ne dessine pas le pont situé derrière la caméra
     poly(ctx, cam, [[-16, 12, zs], [16, 12, zs], [16, 12, 168], [10, 12, 194], [0, 12, 206], [-10, 12, 194], [-16, 12, 168]], "#59647a", "rgba(30,40,60,.25)");
     poly(ctx, cam, [[16, 12, 168], [10, 12, 194], [0, 12, 206], [0, 15, 207], [10.5, 15, 195], [16.4, 15, 168]], "#3e4a62");
     poly(ctx, cam, [[-16, 12, 168], [-10, 12, 194], [0, 12, 206], [0, 15, 207], [-10.5, 15, 195], [-16.4, 15, 168]], "#3e4a62");
@@ -1861,14 +1953,14 @@
       poly(ctx, cam, [[sx, -5, 0.5], [sx, -5, 166], [sx, 0, 168], [sx, 0, 0]], "#c25a5a");
       poly(ctx, cam, [[sx, 9.5, 0], [sx, 9.5, 168], [sx, 10, 168], [sx, 10, 0]], "rgba(255,255,255,.7)");
     }
-    if (!cabin) {
+    if (cam.pos.z < 0) {
       poly(ctx, cam, [[-16, 0, 0], [16, 0, 0], [16, 12, 0], [-16, 12, 0]], "#34405a");
       poly(ctx, cam, [[-15.5, -5, 0.5], [15.5, -5, 0.5], [16, 0, 0], [-16, 0, 0]], "#c25a5a");
       const a = cam.p(-12, 6, 0);
       ctx.font = `600 ${Math.max(8, cam.k * 1.5)}px "JetBrains Mono", monospace`; ctx.fillStyle = "rgba(255,255,255,.85)";
       ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText("KITECARGO", a[0], a[1]);
     }
-    const list = BOXES.filter(b => !cabin || b.z0 > cam.pos.z + 2)
+    const list = BOXES.filter(b => b.z0 > cam.pos.z + 2)
       .map(b => ({ b, d: Math.hypot((b.x0 + b.x1) / 2 - cam.pos.x, (b.y0 + b.y1) / 2 - cam.pos.y, (b.z0 + b.z1) / 2 - cam.pos.z) }))
       .sort((p, q) => q.d - p.d);
     for (const { b } of list) drawBox(ctx, cam, b);
@@ -1876,7 +1968,7 @@
     ctx.strokeStyle = "#e8ebf2"; ctx.lineWidth = Math.max(1.5, cam.k * 0.35);
     ctx.beginPath(); ctx.moveTo(m0[0], m0[1]); ctx.lineTo(m1[0], m1[1]); ctx.stroke();
     ctx.fillStyle = "#f07d9c"; ctx.beginPath(); ctx.arc(m1[0], m1[1], Math.max(2.5, cam.k * 0.5), 0, Math.PI * 2); ctx.fill();
-    FW.ship = { cv, mast: m1, funnel: cabin ? null : cam.p(0, 56, 5) };
+    FW.ship = { cv, mast: m1, funnel: cam.pos.z < 2 ? cam.p(0, 56, 5) : null };
     FW.shipKey = key;
     return FW.ship;
   }
@@ -1893,7 +1985,7 @@
     const sea = seaState(windKn, flowRel);
     const storm = smooth((windKn - 28) / 14);
     const cam = camFor(w, h);
-    const cabin = cam.pos.z > 10;
+    const cabin = VIEW === "cabin";
     // mouvements du navire : roulis, tangage et pilonnement proportionnels à la houle
     const roll = rad(clamp(sea.A * 1.5, 0.3, 14) * Math.sin(t * 0.55) * (cabin ? 1.2 : 1));
     const pitchPx = clamp(sea.A * 0.7, 0.2, 7) * Math.sin(t * 0.8 + 1) * cam.k * 0.8;
@@ -1956,7 +2048,7 @@
     const hz = ctx.createLinearGradient(0, cam.hy - 6 * cam.k, 0, cam.hy + 3 * cam.k);
     hz.addColorStop(0, "rgba(246,226,226,0)"); hz.addColorStop(0.6, "rgba(246,226,226,.55)"); hz.addColorStop(1, "rgba(220,226,234,0)");
     ctx.fillStyle = hz; ctx.fillRect(-w * 0.3, cam.hy - 6 * cam.k, w * 1.6, 9 * cam.k);
-    if (!cabin) {   // sillage
+    if (cam.pos.z < 0) {   // sillage
       for (let i = 0; i < 16; i++) {
         const z = -i * 7, spread = 3 + i * 1.6;
         for (const sgn of [-1, 1]) {
@@ -2004,6 +2096,9 @@
     const p = cam.p(A[0] + d[0] * L, A[1] + d[1] * L, A[2] + d[2] * L);
     return Math.abs(p[3]) > 150 || p[2] < 2 ? null : p;
   }
+  // Taille affichée : surtout liée à la surface (√surface ≈ envergure), la distance ne joue qu'un peu,
+  // pour que la différence entre un kite de 5 m² et un kite de 500 m² saute aux yeux.
+  const kitePx = (area, r) => (10 + 3.2 * Math.sqrt(area)) * clamp(Math.pow(350 / Math.max(r, 1), 0.3), 0.65, 1.35);
   function placeKite(ctx, p, sizePx, dt, key) {
     const prev = FW.lastKite;
     let target = 0;
@@ -2043,7 +2138,7 @@
     if (!p) return;
     ctx.strokeStyle = "rgba(40,50,70,.55)"; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(mast[0], mast[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
-    placeKite(ctx, p, (16 + 2.4 * Math.sqrt(CFG.KA)) * clamp(Math.sqrt(450 / p[2]), 0.55, 1.4) * (0.35 + 0.65 * dep), dt, "game");
+    placeKite(ctx, p, kitePx(CFG.KA, p[2]) * (0.35 + 0.65 * dep), dt, "game");
     scene.force = flying ? sim.T * (0.85 + 0.3 * Math.pow(Math.cos(FW.kt), 2)) * dep : 0;
   }
 
@@ -2076,7 +2171,7 @@
     };
     label("ZONE DE PUISSANCE", 0, 14, "#c94468");
     label("BORD", 78, 22, "#2f8f72"); label("BORD", -78, 22, "#2f8f72");
-    label("ZÉNITH", 0, 84, "#2f8f72");
+    label("ZÉNITH", -32, 80, "#2f8f72");
   }
 
   function drawKiteMode(ctx, cam, dt, mast) {
@@ -2095,9 +2190,9 @@
     if (!p) return;
     const tension = clamp(KS.T / KCFG.TMAX, 0, 1.3);
     ctx.strokeStyle = tension > 0.85 ? `rgba(208,74,108,${0.6 + 0.4 * Math.sin(FW.time * 20)})` : "rgba(40,50,70,.6)";
-    ctx.lineWidth = 1 + tension * 1.2;
+    ctx.lineWidth = 0.6 + Math.sqrt(P.area) / 14 + tension * 1.2;
     ctx.beginPath(); ctx.moveTo(mast[0], mast[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
-    placeKite(ctx, p, (16 + 2.4 * Math.sqrt(P.area)) * clamp(Math.sqrt(450 / p[2]), 0.5, 1.5), dt, "kite");
+    placeKite(ctx, p, kitePx(P.area, p[2]), dt, "kite");
   }
 
   // Habitacle : plafond, montants de vitres et console avec écrans
