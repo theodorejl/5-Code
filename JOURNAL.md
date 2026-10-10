@@ -96,3 +96,9 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
     - À l'horizon, selon le cap : France (tour Eiffel, Mont Blanc), Royaume-Uni (falaises, Big Ben), Islande (glacier, volcan), New York (gratte-ciel, statue de la Liberté), Afrique (dunes, pyramide, palmiers). Leur taille grandit quand on s'en approche et leur distance est affichée.
     - La boussole (02) montre la carte des vents autour du cargo, du vert (calme) au violet (fort), avec les icônes des destinations. Elle a maintenant le nord en haut.
   - Briefing du mode kite complété : touches du cargo, carte des vents, lecture de l'horizon.
+
+## 10. Sites de jeux en ligne pour s'inspirer
+- **Date** : 2026-10-10 15:42
+- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Demande** : 10 sites de jeux ou simulateurs en ligne proposant une expérience similaire, comme sources d'inspiration.
+- **Modifications** : aucune modification du code. Liste fournie dans la conversation : En-ROADS, The Climate Game (Financial Times), PhET, Virtual Regatta, Sailonline, Windy, earth.nullschool.net, Ventusky, MarineTraffic, portfolio 3D de Bruno Simon.
