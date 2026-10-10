@@ -203,7 +203,7 @@
   /* ---------- Controls ---------- */
   .controls { padding: 10px 12px; display: grid; grid-template-columns: minmax(0, 1fr) 236px; gap: 14px; align-items: center; }
   .controls > .eyebrow { grid-column: 1 / -1; margin: 0; }
-  .knobs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .knobs { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 6px; }
   .knob { display: flex; flex-direction: column; align-items: center; gap: 1px; user-select: none; -webkit-user-select: none; position: relative; }
   .knob svg { width: 84px; height: 84px; cursor: grab; touch-action: none; outline: none; border-radius: 50%; overflow: visible; }
   .knob svg:focus-visible { box-shadow: 0 0 0 3px rgba(124, 108, 240, .4); }
@@ -411,6 +411,8 @@
             <div class="not-kite"><span class="keys"><kbd>Espace</kbd></span>Déployer / rentrer le kite</div>
             <div class="only-kite"><span class="keys"><kbd>←</kbd><kbd>→</kbd></span>Diriger le kite (maintenir)</div>
             <div class="only-kite"><span class="keys"><kbd>↑</kbd><kbd>↓</kbd></span>Monter / descendre (maintenir)</div>
+            <div class="only-kite"><span class="keys"><kbd>Q</kbd><kbd>D</kbd></span>Tourner le cargo (A sur clavier QWERTY)</div>
+            <div class="only-kite"><span class="keys"><kbd>Z</kbd><kbd>S</kbd></span>Accélérer / ralentir le cargo (W en QWERTY)</div>
             <div class="only-kite"><span class="keys"><kbd>F</kbd></span>Afficher la fenêtre de vol</div>
             <div class="only-fwd"><span class="keys"><kbd>V</kbd></span>Vue 3e personne / cabine</div>
             <div class="only-fwd"><span class="keys"><kbd>P</kbd><kbd>Échap</kbd></span>Pause</div>
@@ -443,6 +445,8 @@
               <div><b>Fenêtre colorée dans le ciel</b> : rose = zone de puissance, jaune = faible, vert = bord et zénith (ça ne tire presque plus).</div>
               <div><b>Panneau en bas à droite</b> : temps restant, CO₂ évité, nombre de crashs et un conseil en direct.</div>
               <div><b>03 Jauges</b> : tension (rouge = proche de la limite de 300 kN), zone de vol, poussée utile vers l'avant.</div>
+              <div><b>02 Carte des vents</b> : autour du cargo, du vert (calme) au violet (fort). Va chercher le vent qui te convient !</div>
+              <div><b>Horizon</b> : les pays vers lesquels tu navigues (France, Afrique, New York…) grossissent quand tu t'en approches.</div>
               <div><b>05 Schéma</b> : la fenêtre vue de face avec la trajectoire de ton kite.</div>
               <div><b>06–07</b> : tension au fil du temps et effet de la taille du kite et de la longueur de ligne.</div>
             </div>
@@ -751,23 +755,40 @@
   //  Repère du navire : x tribord, y haut, z avant. Le kite est repéré par son azimut (az, relatif à l'étrave)
   //  et son élévation (theta) ; phi = écart à l'axe sous le vent (centre de la fenêtre).
   // ================================================================
-  const KCFG = { VSHIP: 12, SESSION: 90, SIM: 60, TMAX: 300, CL: 1.0, CRASH_PEN: 40, BREAK_PEN: 80, FAST: 8, ANCHOR: [0, 40, 196] };
+  const KCFG = { SESSION: 90, SIM: 60, TMAX: 300, CL: 1.0, CRASH_PEN: 40, BREAK_PEN: 80, FAST: 8, ANCHOR: [0, 40, 196] };
   const KS = { az: 0, theta: 55, vphi: 0, vth: 0, phi: 0, down: 0, Wa: 0, Wk: 0, W10: 19, alt: 0, T: 0, fwd: 0, wf: 0, Va: 0,
-    crashed: 0, overload: 0, clock: 0, runT: 0, co2: 0, crashes: 0, breaks: 0, hist: [], histT: 0, trail: [], fromRel: 180 };
+    crashed: 0, overload: 0, clock: 0, runT: 0, co2: 0, crashes: 0, breaks: 0, hist: [], histT: 0, trail: [], fromRel: 180,
+    mx: 0, my: 0, windFrom: 215, zone: "", lastHeading: null };
   const held = new Set();
-  // Vent du mode kite : vient de l'arrière (±50°), tourne lentement, avec des rafales
-  function kiteWind(t) {
-    const shift = 22 * smooth((Math.sin(t * 0.035) + 1) / 2) - 11;
-    const fromRel = 180 + 26 * Math.sin(t * 0.05) + 12 * Math.sin(t * 0.13 + 1) + shift;
-    const gust = 7 * Math.pow(Math.max(0, Math.sin(t * 0.45 + 0.3 * Math.sin(t * 0.11))), 10);
-    const speed = 19 + 4 * Math.sin(t * 0.07) + 2 * Math.sin(t * 0.31 + 2) + gust;
-    return { fromRel: norm360(fromRel), speed };
+  // Carte schématique de l'Atlantique (milles ; x vers l'est, y vers le nord ; départ au milieu de l'océan).
+  // Chaque zone impose une direction et une force de vent ; elles se mélangent en douceur selon la distance.
+  const WIND_ZONES = [
+    { x: 0, y: 0, r: 520, from: 215, kn: 17, name: "centre de l'océan" },
+    { x: -350, y: 950, r: 650, from: 255, kn: 29, name: "vents d'ouest" },
+    { x: 650, y: -950, r: 700, from: 45, kn: 21, name: "alizés" },
+    { x: 1050, y: -250, r: 420, from: 330, kn: 7, name: "calmes" },
+    { x: -950, y: -350, r: 480, from: 100, kn: 12, name: "petit vent d'est" },
+    { x: 450, y: 520, r: 330, from: 200, kn: 35, name: "dépression" }
+  ];
+  const MAP_RATE = 0.6;   // milles « schématiques » parcourus par seconde et par nœud (carte accélérée)
+  function windField(x, y, t) {
+    let vx = 0, vy = 0, wsum = 0, best = null, bestW = 0;
+    for (const z of WIND_ZONES) {
+      const wgt = Math.exp(-((x - z.x) ** 2 + (y - z.y) ** 2) / (z.r * z.r)) + 0.02;
+      const to = rad(z.from + 180);
+      vx += wgt * z.kn * Math.sin(to); vy += wgt * z.kn * Math.cos(to); wsum += wgt;
+      if (wgt > bestW) { bestW = wgt; best = z; }
+    }
+    vx /= wsum; vy /= wsum;
+    const gust = 6 * Math.pow(Math.max(0, Math.sin(t * 0.45 + 0.3 * Math.sin(t * 0.11))), 10);
+    const from = norm360(deg(Math.atan2(-vx, -vy)) + 8 * Math.sin(t * 0.05) + 4 * Math.sin(t * 0.13 + 1));
+    return { from, speed: Math.max(2, Math.hypot(vx, vy) * (1 + 0.08 * Math.sin(t * 0.07)) + gust), zone: best.name };
   }
   // Vent réel à l'altitude du kite (loi de puissance 1/7) puis vent apparent (on retranche la vitesse du navire)
   function kiteAir(W10kn, fromRel, alt) {
     const Wk = W10kn * KN * Math.pow(Math.max(alt, 10) / 10, 1 / 7);
     const fr = rad(fromRel + 180);
-    const ax = Wk * Math.sin(fr), az = Wk * Math.cos(fr) - KCFG.VSHIP * KN;
+    const ax = Wk * Math.sin(fr), az = Wk * Math.cos(fr) - P.speed * KN;
     return { Wk, Wa: Math.hypot(ax, az), down: deg(Math.atan2(ax, az)) };
   }
   const lineLD = L => 3.2 / (1 + L / 1200);   // la traînée de la ligne réduit la finesse
@@ -792,12 +813,23 @@
   }
   function stepKite(dt, scoring) {
     KS.clock += dt;
-    const w = kiteWind(KS.clock);
-    KS.fromRel = w.fromRel; KS.W10 = w.speed;
-    P.windDir = w.fromRel; P.windSpeed = w.speed;
+    // pilotage du cargo : Q/A = bâbord, D = tribord, Z/W = plus vite, S = moins vite (ou les potards)
+    const turn = (held.has("d") ? 1 : 0) - (held.has("q") || held.has("a") ? 1 : 0);
+    const thr = (held.has("z") || held.has("w") ? 1 : 0) - (held.has("s") ? 1 : 0);
+    if (turn) P.heading = norm360(P.heading + turn * 10 * dt);
+    if (thr) P.speed = clamp(P.speed + thr * 2 * dt, 8, 16);
+    // le kite reste au même endroit dans le ciel quand le cargo tourne : son azimut relatif compense
+    if (KS.lastHeading === null) KS.lastHeading = P.heading;
+    const dh = norm180(P.heading - KS.lastHeading);
+    if (dh) { KS.az -= dh; KS.trail.forEach(q => { q[0] -= dh; }); KS.lastHeading = P.heading; }
+    KS.mx += Math.sin(rad(P.heading)) * P.speed * MAP_RATE * dt;
+    KS.my += Math.cos(rad(P.heading)) * P.speed * MAP_RATE * dt;
+    const w = windField(KS.mx, KS.my, KS.clock);
+    KS.windFrom = w.from; KS.fromRel = norm360(w.from - P.heading); KS.W10 = w.speed; KS.zone = w.zone;
+    P.windDir = w.from; P.windSpeed = w.speed;
     const L = P.line;
     KS.alt = KCFG.ANCHOR[1] + L * Math.sin(rad(KS.theta));
-    const air = kiteAir(w.speed, w.fromRel, KS.alt);
+    const air = kiteAir(w.speed, KS.fromRel, KS.alt);
     KS.Wk = air.Wk; KS.Wa = air.Wa; KS.down = air.down;
     if (scoring) KS.runT += dt;
     if (KS.crashed > 0) {
@@ -835,7 +867,7 @@
       const last = KS.trail[KS.trail.length - 1];
       if (KS.crashed <= 0 && (!last || Math.hypot(last[0] - KS.az, last[1] - KS.theta) > 0.8)) { KS.trail.push([KS.az, KS.theta]); if (KS.trail.length > 160) KS.trail.shift(); }
     }
-    if (scoring) KS.co2 += KS.fwd * KCFG.VSHIP * KN * dt * KCFG.SIM / 3600 / CFG.ETA * CFG.SFOC * CFG.CO2F;
+    if (scoring) KS.co2 += KS.fwd * P.speed * KN * dt * KCFG.SIM / 3600 / CFG.ETA * CFG.SFOC * CFG.CO2F;
     KS.histT += dt;
     if (KS.histT > 0.1) { KS.histT = 0; KS.hist.push([KS.T, KS.fwd]); if (KS.hist.length > 300) KS.hist.shift(); }
     if (scoring && KS.runT >= KCFG.SESSION) endKite();
@@ -929,13 +961,13 @@
     });
     svg.addEventListener("dblclick", () => { if (!locked) set(DEFAULTS[o.key]); });
     render();
-    knobs[o.key] = { set, render, lock(on) { locked = on; box.classList.toggle("locked", on); box.querySelector(".lock").hidden = !on; svg.tabIndex = on ? -1 : 0; } };
+    knobs[o.key] = { set, render, setKeys(arr) { box.querySelector(".knob-keys").innerHTML = arr.map(k => `<kbd>${k}</kbd>`).join(""); }, lock(on) { locked = on; box.classList.toggle("locked", on); box.querySelector(".lock").hidden = !on; svg.tabIndex = on ? -1 : 0; } };
   }
-  createKnob({ key: "speed", cls: "not-kite", label: "Vitesse", min: 8, max: 16, step: 0.1, wheel: 0.5, color: "#3fb894", color2: "#8fe0c8", keys: ["↑", "↓"], fmt: v => `${v.toFixed(1)}<i>nd</i>` });
-  createKnob({ key: "heading", cls: "not-kite", label: "Cap", min: 0, max: 360, step: 1, wheel: 5, wrap: true, color: "#4cbf7f", color2: "#8fe0c8", keys: ["←", "→"], fmt: v => `${Math.round(v)}°<i>${cardinal(v)}</i>` });
+  createKnob({ key: "speed", label: "Vitesse", min: 8, max: 16, step: 0.1, wheel: 0.5, color: "#3fb894", color2: "#8fe0c8", keys: ["↑", "↓"], fmt: v => `${v.toFixed(1)}<i>nd</i>` });
+  createKnob({ key: "heading", label: "Cap", min: 0, max: 360, step: 1, wheel: 5, wrap: true, color: "#4cbf7f", color2: "#8fe0c8", keys: ["←", "→"], fmt: v => `${Math.round(v)}°<i>${cardinal(v)}</i>` });
   createKnob({ key: "area", cls: "only-kite", label: "Surface kite", min: 5, max: 500, step: 5, wheel: 5, color: "#f07d9c", color2: "#ffc9a8", keys: ["souris"], lockTxt: "SESSION", fmt: v => `${Math.round(v)}<i>m²</i>`, onSet: () => { kiteTablesDirty = true; } });
   createKnob({ key: "line", cls: "only-kite", label: "Longueur ligne", min: 25, max: 1000, step: 5, wheel: 25, color: "#6aaee8", color2: "#a8e6d3", keys: ["souris"], lockTxt: "SESSION", fmt: v => `${Math.round(v)}<i>m</i>`, onSet: () => { kiteTablesDirty = true; KS.trail.length = 0; } });
-  createKnob({ key: "windDir", label: "Vent du", min: 0, max: 360, step: 1, wheel: 5, wrap: true, color: "#6aaee8", color2: "#9b87f5", keys: ["souris"], fmt: v => `${Math.round(v)}°<i>${G.mode === "kite" ? "relatif" : cardinal(v)}</i>` });
+  createKnob({ key: "windDir", label: "Vent du", min: 0, max: 360, step: 1, wheel: 5, wrap: true, color: "#6aaee8", color2: "#9b87f5", keys: ["souris"], fmt: v => `${Math.round(v)}°<i>${cardinal(v)}</i>` });
   createKnob({ key: "windSpeed", label: "Force du vent", min: 0, max: 45, step: 1, wheel: 1, color: "#9b87f5", color2: "#6aaee8", keys: ["souris"], fmt: v => `${Math.round(v)}<i>nd</i>` });
 
   function setParams(o, silent) {
@@ -1109,10 +1141,10 @@
     $("g2v").textContent = `${fmt0(KS.wf * 100)} %`; $("g2s").textContent = zoneName(KS.wf);
     $("g3v").textContent = `${fmt0(KS.fwd)} kN`; $("g3s").textContent = "vers l'avant";
     $("kFuel").textContent = `${fmt0(KS.co2)} kg`; $("kFuelD").className = "flat"; $("kFuelD").textContent = G.state === "run" ? "session en cours" : "entraînement";
-    $("kCo2").textContent = `${fmt0(KS.fwd * KCFG.VSHIP * KN)} kW`; $("kCo2D").className = "flat"; $("kCo2D").textContent = `navire à ${KCFG.VSHIP} nd`;
+    $("kCo2").textContent = `${fmt0(KS.fwd * P.speed * KN)} kW`; $("kCo2D").className = "flat"; $("kCo2D").textContent = `cargo à ${fmt1(P.speed)} nd · cap ${Math.round(P.heading)}°`;
     $("kDays").textContent = `${fmt0(KS.alt)} m`; $("kDaysD").className = "flat"; $("kDaysD").textContent = `ligne ${fmt0(P.line)} m · ${fmt0(KS.theta)}°`;
-    $("kPow").textContent = `${fmt0(KS.Wk / KN)} nd`; $("kPowD").className = "flat"; $("kPowD").textContent = `pont ${fmt0(KS.W10)} · apparent ${fmt0(KS.Wa / KN)}`;
-    $("lCap").textContent = "0° (avant)";
+    $("kPow").textContent = `${fmt0(KS.Wk / KN)} nd`; $("kPowD").className = "flat"; $("kPowD").textContent = `${KS.zone} · pont ${fmt0(KS.W10)}`;
+    $("lCap").textContent = `${Math.round(P.heading)}°`;
     $("lWind").textContent = `${fmt0(KS.W10)} nd`;
     $("lApp").textContent = `${fmt0(KS.Wa / KN)} nd`;
     $("lKite").textContent = `${fmt0(KS.T)} kN`;
@@ -1123,7 +1155,9 @@
     $("kCo2s").textContent = `${fmt0(KS.co2)} kg`;
     $("kCrash").textContent = `${KS.crashes + KS.breaks}`;
     let tip;
+    const headwind = Math.abs(norm180(KS.fromRel)) < 70;
     if (KS.crashed > 0) tip = "Relance du kite au zénith…";
+    else if (headwind) tip = "Vent de face : le kite tire vers l'arrière ! Tourne le cargo (Q / D) pour mettre le vent dans le dos.";
     else if (KS.T > KCFG.TMAX * 0.85) tip = "⚠ Trop de tension : sors de la zone de puissance (vers le bord) !";
     else if (KS.wf < 0.25) tip = "Bord de fenêtre : le kite tire peu. Redescends vers le centre (↓ et ← →).";
     else if (Math.hypot(KS.vphi, KS.vth) < 6) tip = "Kite immobile : fais des 8 avec ← → pour multiplier la traction.";
@@ -1189,11 +1223,15 @@
     if (mode === "sandbox") { G.kiteLost = false; setParams({ speed: 14, heading: 270, windDir: 30, windSpeed: 20, kite: true }); showMission(mIdx); }
     if (mode === "game") { G.kiteLost = false; resetGame(); }
     if (mode === "kite") {
-      KS.clock = 0; kiteReset(true); kiteTablesDirty = true;
-      toast("Entraîne-toi avec les flèches, puis ▶ Jouer pour une session chronométrée", "", "kiteIntro", 60);
+      KS.clock = 0; KS.mx = 0; KS.my = 0; KS.lastHeading = null;
+      knobs.heading.set(40, true); knobs.speed.set(12, true);
+      kiteReset(true); kiteTablesDirty = true;
+      toast("Flèches = kite · Q/D et Z/S = cargo · ▶ Jouer pour une session chronométrée", "", "kiteIntro", 60);
       if (!G.seenHelp.kiteIntro) { G.seenHelp.kiteIntro = true; helpReturn = null; showOverlay("ovHelp"); setHelpPage(1); }
     }
     knobs.windDir.render();
+    knobs.heading.setKeys(mode === "kite" ? ["Q", "D"] : ["←", "→"]);
+    knobs.speed.setKeys(mode === "kite" ? ["Z", "S"] : ["↑", "↓"]);
   }
   document.querySelectorAll("#modeSeg button").forEach(b => b.addEventListener("click", () => {
     if (b.dataset.mode === "game") startFlow("game"); else setMode(b.dataset.mode);
@@ -1261,6 +1299,7 @@
 
   function resetGame() {
     Object.assign(G, { h: 0, dist: 0, co2: 0, kiteLost: false, kiteH: 0, result: null });
+    decorSeen.clear();
     if (!G.ref) G.ref = refProfile();
     const w = weather(0);
     setParams({ speed: 14, heading: GAME.ROUTE, windDir: w.dir, windSpeed: w.speed, kite: false });
@@ -1269,7 +1308,7 @@
   function countdown() {
     G.state = "count";
     if (G.mode === "game") resetGame();
-    else { kiteReset(true); knobs.area.lock(true); knobs.line.lock(true); }
+    else { KS.mx = 0; KS.my = 0; KS.lastHeading = null; knobs.heading.set(40, true); knobs.speed.set(12, true); kiteReset(true); knobs.area.lock(true); knobs.line.lock(true); }
     showOverlay("ovCount");
     const seq = ["3", "2", "1", G.mode === "kite" ? "Envoyez !" : "Cap à l'ouest !"];
     let i = 0;
@@ -1549,7 +1588,9 @@
     if (G.mode !== "sandbox" && (k === "v" || k === "V")) { toggleView(); return; }
     if (G.mode === "kite" && (k === "f" || k === "F")) { toggleWindow(); return; }
     if (G.mode === "kite") {
+      const lk = k.toLowerCase();
       if (ARROWS.includes(k) || k === " ") { e.preventDefault(); if (!overlay && ARROWS.includes(k)) held.add(k); }
+      else if (["q", "a", "d", "z", "w", "s"].includes(lk) && !overlay) { e.preventDefault(); held.add(lk); }
       return;
     }
     const canDrive = G.mode === "sandbox" ? !overlay : G.state === "run";
@@ -1562,7 +1603,7 @@
     else return;
     e.preventDefault();
   });
-  window.addEventListener("keyup", e => held.delete(e.key));
+  window.addEventListener("keyup", e => { held.delete(e.key); held.delete(e.key.toLowerCase()); });
   window.addEventListener("blur", () => held.clear());
   setInterval(() => { $("kbdOff").hidden = document.hasFocus(); }, 600);
 
@@ -1973,30 +2014,287 @@
     return FW.ship;
   }
 
+  // ================================================================
+  //  DÉCORS : bateaux, îles et repères le long de la route (défi), pays à l'horizon (pilote de kite)
+  //  Dessins en mètres, origine au niveau de la mer ; s = pixels par mètre à la distance de l'objet.
+  // ================================================================
+  function drawPalm(ctx, x, y, h) {
+    ctx.strokeStyle = "#8a6a4a"; ctx.lineWidth = Math.max(1, h * 0.06);
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + h * 0.15, y - h * 0.5, x + h * 0.05, y - h); ctx.stroke();
+    ctx.strokeStyle = "#5e9e6e"; ctx.lineWidth = Math.max(1, h * 0.05);
+    for (const a of [-2.6, -2.0, -1.2, -0.5, 0.1]) {
+      ctx.beginPath(); ctx.moveTo(x + h * 0.05, y - h);
+      ctx.quadraticCurveTo(x + h * 0.05 + Math.cos(a) * h * 0.3, y - h + Math.sin(a) * h * 0.25 - h * 0.08, x + h * 0.05 + Math.cos(a) * h * 0.45, y - h + h * 0.12);
+      ctx.stroke();
+    }
+  }
+  function drawStatue(ctx, x, y, h) {   // statue de la Liberté (h = hauteur totale)
+    ctx.fillStyle = "#b9ab92"; ctx.fillRect(x - h * 0.16, y - h * 0.42, h * 0.32, h * 0.42);
+    ctx.fillStyle = "#6fb7a1";
+    ctx.beginPath(); ctx.moveTo(x - h * 0.1, y - h * 0.42); ctx.lineTo(x + h * 0.1, y - h * 0.42); ctx.lineTo(x + h * 0.06, y - h * 0.82); ctx.lineTo(x - h * 0.06, y - h * 0.82); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y - h * 0.86, h * 0.05, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#6fb7a1"; ctx.lineWidth = Math.max(1, h * 0.035);
+    ctx.beginPath(); ctx.moveTo(x + h * 0.05, y - h * 0.78); ctx.lineTo(x + h * 0.12, y - h * 0.98); ctx.stroke();
+    for (const a of [-1.2, -0.6, 0, 0.6, 1.2]) { ctx.beginPath(); ctx.moveTo(x, y - h * 0.9); ctx.lineTo(x + Math.sin(a) * h * 0.08, y - h * 0.9 - Math.cos(a) * h * 0.06); ctx.stroke(); }
+    ctx.fillStyle = "#ffb347"; ctx.beginPath(); ctx.ellipse(x + h * 0.12, y - h * 1.0, h * 0.025, h * 0.04, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  function drawSkyline(ctx, x, y, w, h, seed) {
+    let s = seed;
+    const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    for (let bx = x - w / 2; bx < x + w / 2;) {
+      const bw = w * (0.025 + rnd() * 0.035), bh = h * (0.3 + rnd() * 0.7);
+      ctx.fillStyle = rnd() > 0.5 ? "#9fb0c4" : "#b3c1d2";
+      ctx.fillRect(bx, y - bh, bw - Math.max(0.5, w * 0.003), bh);
+      if (rnd() > 0.85) { ctx.fillRect(bx + bw * 0.4, y - bh - h * 0.15, bw * 0.15, h * 0.15); }
+      bx += bw;
+    }
+  }
+  const DECOR = {
+    sail(ctx, s, t) {
+      ctx.rotate(Math.sin(t * 0.7) * 0.05);
+      ctx.fillStyle = "#f4f6fa"; ctx.beginPath(); ctx.moveTo(-7 * s, -2 * s); ctx.lineTo(8 * s, -2 * s); ctx.lineTo(6 * s, 0.5 * s); ctx.lineTo(-6 * s, 0.5 * s); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#4a5670"; ctx.fillRect(-0.3 * s, -19 * s, Math.max(1, 0.6 * s), 17 * s);
+      ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.moveTo(0, -18 * s); ctx.lineTo(0, -3 * s); ctx.lineTo(-7 * s, -3 * s); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#f9e7e0"; ctx.beginPath(); ctx.moveTo(0.6 * s, -17 * s); ctx.lineTo(7 * s, -2.6 * s); ctx.lineTo(0.6 * s, -2.6 * s); ctx.closePath(); ctx.fill();
+    },
+    fishing(ctx, s, t) {
+      ctx.rotate(Math.sin(t * 0.9 + 1) * 0.04);
+      ctx.fillStyle = "#c8574d"; ctx.beginPath(); ctx.moveTo(-15 * s, -4 * s); ctx.lineTo(14 * s, -6 * s); ctx.lineTo(12 * s, 1 * s); ctx.lineTo(-13 * s, 1 * s); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#f2f2ee"; ctx.fillRect(2 * s, -11 * s, 9 * s, 6 * s);
+      ctx.fillStyle = "#4a5670"; ctx.fillRect(3 * s, -10 * s, 7 * s, 1.5 * s);
+      ctx.strokeStyle = "#5a5f7c"; ctx.lineWidth = Math.max(1, 0.5 * s);
+      ctx.beginPath(); ctx.moveTo(-4 * s, -4 * s); ctx.lineTo(-4 * s, -18 * s); ctx.lineTo(-14 * s, -6 * s); ctx.moveTo(-4 * s, -18 * s); ctx.lineTo(8 * s, -11 * s); ctx.stroke();
+    },
+    warship(ctx, s) {
+      ctx.fillStyle = "#8a95a3"; ctx.beginPath(); ctx.moveTo(-70 * s, -6 * s); ctx.lineTo(72 * s, -8 * s); ctx.lineTo(60 * s, 1 * s); ctx.lineTo(-66 * s, 1 * s); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#9aa5b2"; ctx.fillRect(-25 * s, -19 * s, 34 * s, 13 * s); ctx.fillRect(-16 * s, -28 * s, 14 * s, 9 * s);
+      ctx.fillStyle = "#7d8896"; ctx.fillRect(24 * s, -12 * s, 9 * s, 6 * s); ctx.fillRect(30 * s, -10.5 * s, 16 * s, 1.6 * s);
+      ctx.strokeStyle = "#6f7a88"; ctx.lineWidth = Math.max(1, 0.8 * s); ctx.beginPath(); ctx.moveTo(-9 * s, -28 * s); ctx.lineTo(-9 * s, -44 * s); ctx.stroke();
+    },
+    cargo(ctx, s) {
+      ctx.fillStyle = "#3b4a63"; ctx.beginPath(); ctx.moveTo(-110 * s, -10 * s); ctx.lineTo(112 * s, -12 * s); ctx.lineTo(100 * s, 1 * s); ctx.lineTo(-104 * s, 1 * s); ctx.closePath(); ctx.fill();
+      for (let i = 0; i < 16; i++) { ctx.fillStyle = CONT_COLORS[i % CONT_COLORS.length]; ctx.fillRect((-72 + i * 10.5) * s, -(18 + (i % 3) * 3) * s, 10 * s, (8 + (i % 3) * 3) * s); }
+      ctx.fillStyle = "#eef0f4"; ctx.fillRect(-100 * s, -38 * s, 18 * s, 28 * s);
+    },
+    iceberg(ctx, s) {
+      const g = ctx.createLinearGradient(0, -60 * s, 0, 0); g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#cfe6f2");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(-55 * s, 0); ctx.lineTo(-44 * s, -24 * s); ctx.lineTo(-22 * s, -46 * s); ctx.lineTo(-6 * s, -38 * s); ctx.lineTo(10 * s, -62 * s); ctx.lineTo(30 * s, -32 * s); ctx.lineTo(52 * s, 0); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "rgba(150,195,225,.45)"; ctx.beginPath(); ctx.moveTo(10 * s, -62 * s); ctx.lineTo(30 * s, -32 * s); ctx.lineTo(52 * s, 0); ctx.lineTo(18 * s, 0); ctx.closePath(); ctx.fill();
+    },
+    lighthouse(ctx, s, t) {
+      ctx.fillStyle = "#8d9a8a"; ctx.beginPath(); ctx.moveTo(-130 * s, 0); ctx.quadraticCurveTo(-60 * s, -30 * s, 0, -30 * s); ctx.quadraticCurveTo(70 * s, -28 * s, 130 * s, 0); ctx.closePath(); ctx.fill();
+      for (let i = 0; i < 4; i++) { ctx.fillStyle = i % 2 ? "#ffffff" : "#d65a5a"; ctx.fillRect(-5 * s, (-30 - (i + 1) * 11) * s, 10 * s, 11 * s); }
+      ctx.fillStyle = "#3a465c"; ctx.fillRect(-6 * s, -80 * s, 12 * s, 6 * s);
+      const g = ctx.createRadialGradient(0, -77 * s, 0, 0, -77 * s, 40 * s);
+      g.addColorStop(0, `rgba(255,240,180,${0.6 + 0.4 * Math.sin(t * 2)})`); g.addColorStop(1, "rgba(255,240,180,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -77 * s, 40 * s, 0, Math.PI * 2); ctx.fill();
+    },
+    island(ctx, s) {
+      ctx.fillStyle = "#86a28c";
+      ctx.beginPath(); ctx.moveTo(-3200 * s, 0);
+      for (let x = -3200; x <= 3200; x += 200) ctx.lineTo(x * s, -(Math.max(0, 1 - Math.abs(x) / 3300) * 380 + 50 * Math.sin(x / 300)) * s);
+      ctx.lineTo(3200 * s, 0); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#a8bfa9"; ctx.beginPath(); ctx.moveTo(-1500 * s, 0); ctx.quadraticCurveTo(-600 * s, -220 * s, 400 * s, 0); ctx.closePath(); ctx.fill();
+    },
+    cliffs(ctx, s) {
+      ctx.fillStyle = "#eef0ee"; ctx.fillRect(-4000 * s, -120 * s, 8000 * s, 120 * s);
+      ctx.fillStyle = "#9cb98f"; ctx.fillRect(-4000 * s, -135 * s, 8000 * s, 18 * s);
+      ctx.fillStyle = "rgba(170,180,175,.5)"; for (let x = -3900; x < 4000; x += 260) ctx.fillRect(x * s, -115 * s, Math.max(1, 30 * s), 110 * s);
+    },
+    coastFR(ctx, s) {
+      ctx.fillStyle = "#9db3a0"; ctx.beginPath(); ctx.moveTo(-3500 * s, 0);
+      for (let x = -3500; x <= 3500; x += 250) ctx.lineTo(x * s, -(70 + 30 * Math.sin(x / 400)) * s);
+      ctx.lineTo(3500 * s, 0); ctx.closePath(); ctx.fill();
+      for (let i = 0; i < 9; i++) { ctx.fillStyle = i % 3 ? "#f3ece0" : "#e7b8a8"; ctx.fillRect((-600 + i * 70) * s, -(95 + (i % 2) * 10) * s, 50 * s, 30 * s); }
+      ctx.fillStyle = "#c9b8a0"; ctx.fillRect(40 * s, -170 * s, 22 * s, 80 * s);
+    },
+    windfarm(ctx, s, t) {
+      for (let i = 0; i < 6; i++) {
+        const x = (-1000 + i * 400) * s;
+        ctx.strokeStyle = "#e8ebf2"; ctx.lineWidth = Math.max(1, 4 * s);
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, -120 * s); ctx.stroke();
+        ctx.lineWidth = Math.max(1, 2.5 * s);
+        for (let b = 0; b < 3; b++) {
+          const a = t * 1.4 + i + b * 2.094;
+          ctx.beginPath(); ctx.moveTo(x, -120 * s); ctx.lineTo(x + Math.cos(a) * 55 * s, -120 * s + Math.sin(a) * 55 * s); ctx.stroke();
+        }
+      }
+    },
+    newyork(ctx, s) {
+      drawSkyline(ctx, 0, 0, 5200 * s, 420 * s, 11);
+      ctx.fillStyle = "#86a28c"; ctx.fillRect(-3500 * s, -12 * s, 600 * s, 12 * s);
+      drawStatue(ctx, -3200 * s, -12 * s, 300 * s);
+    }
+  };
+  // Repères le long de la route du défi : distance sur la route (milles) et décalage latéral (m, + = tribord, côté nord)
+  const ROUTE_DECOR = [
+    { d: 70, x: -900, type: "windfarm", name: "Parc éolien de la mer du Nord" },
+    { d: 110, x: 700, type: "cargo" },
+    { d: 150, x: 1700, type: "cliffs", name: "Falaises de Douvres" },
+    { d: 165, x: -1900, type: "coastFR", name: "Cap Gris-Nez (France)" },
+    { d: 260, x: -500, type: "sail", exag: 4 },
+    { d: 330, x: 1200, type: "lighthouse", name: "Phare de Bishop Rock (îles Scilly)", exag: 2 },
+    { d: 520, x: 600, type: "fishing", exag: 4 },
+    { d: 760, x: -700, type: "warship", exag: 2 },
+    { d: 980, x: 500, type: "sail", exag: 4 },
+    { d: 1250, x: -900, type: "cargo", exag: 1.5 },
+    { d: 1500, x: 800, type: "fishing", exag: 4 },
+    { d: 1780, x: -650, type: "iceberg", name: "Icebergs des Grands Bancs", exag: 3 },
+    { d: 1830, x: 900, type: "iceberg", exag: 3 },
+    { d: 2050, x: 700, type: "fishing", exag: 4 },
+    { d: 2300, x: 1800, type: "island", name: "Terre-Neuve" },
+    { d: 2600, x: -600, type: "warship", exag: 2 },
+    { d: 2850, x: 1400, type: "lighthouse", name: "Phare de Nantucket", exag: 2 },
+    { d: 3050, x: -500, type: "sail", exag: 4 },
+    { d: 3150, x: 600, type: "sail", exag: 4 },
+    { d: 3460, x: 0, type: "newyork", name: "New York" }
+  ];
+  const VIS_M_PER_NM = 24;   // échelle visuelle compressée pour voir arriver les repères
+  const decorSeen = new Set();
+  function drawRouteDecor(ctx, cam, hdg, t, sea) {
+    const dev = rad(norm180(hdg - GAME.ROUTE));
+    const items = [];
+    for (const o of ROUTE_DECOR) {
+      const ahead = o.d - G.dist;
+      if (ahead < -8 || ahead > 330) continue;
+      if (o.name && ahead < 45 && ahead > 0 && G.state === "run" && !decorSeen.has(o)) {
+        decorSeen.add(o);
+        toast(`${o.name} ${o.x > 300 ? "à tribord ➡" : o.x < -300 ? "⬅ à bâbord" : "droit devant"}`, "", null);
+      }
+      const zr = ahead * VIS_M_PER_NM, xr = o.x;
+      const x = xr * Math.cos(dev) - zr * Math.sin(dev), z = 100 + xr * Math.sin(dev) + zr * Math.cos(dev);
+      const p = cam.p(x, waveY(x, z + FW.dist, sea, t) * 0.4, z);
+      if (Math.abs(p[3]) > 100 || p[2] < 40) continue;
+      items.push({ o, p });
+    }
+    items.sort((a, b) => b.p[2] - a.p[2]);
+    for (const { o, p } of items) {
+      ctx.save();
+      ctx.globalAlpha = clamp(1.3 - p[2] / 8500, 0.35, 1);
+      ctx.translate(p[0], p[1]);
+      DECOR[o.type](ctx, cam.k * 57.2958 / p[2] * (o.exag || 1), t);
+      ctx.restore();
+    }
+  }
+
+  // Pays à l'horizon du mode kite : position sur la carte, dessin schématique, grossit quand on s'approche
+  const HORIZON_SITES = [
+    { name: "France", x: 1350, y: 280, draw: "france" },
+    { name: "Royaume-Uni", x: 950, y: 950, draw: "uk" },
+    { name: "Islande", x: -150, y: 1400, draw: "iceland" },
+    { name: "New York", x: -1750, y: 150, draw: "newyork" },
+    { name: "Afrique", x: 1050, y: -1350, draw: "africa" }
+  ];
+  const SITES = {
+    france(ctx, x, y, H) {
+      ctx.fillStyle = "#9db3a0"; ctx.beginPath(); ctx.moveTo(x - 3.2 * H, y);
+      for (let i = -32; i <= 32; i++) ctx.lineTo(x + i * 0.1 * H, y - H * (0.12 + 0.05 * Math.sin(i * 0.9)));
+      ctx.lineTo(x + 3.2 * H, y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#a7b4c4"; ctx.beginPath(); ctx.moveTo(x - 2.8 * H, y - 0.1 * H); ctx.lineTo(x - 1.7 * H, y - 1.05 * H); ctx.lineTo(x - 0.6 * H, y - 0.1 * H); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.moveTo(x - 2.08 * H, y - 0.72 * H); ctx.lineTo(x - 1.7 * H, y - 1.05 * H); ctx.lineTo(x - 1.32 * H, y - 0.72 * H); ctx.lineTo(x - 1.6 * H, y - 0.78 * H); ctx.closePath(); ctx.fill();
+      const ex = x + 1.0 * H;
+      ctx.strokeStyle = "#5b5f73"; ctx.lineWidth = Math.max(1, H * 0.03);
+      ctx.beginPath(); ctx.moveTo(ex - 0.28 * H, y - 0.1 * H); ctx.quadraticCurveTo(ex - 0.06 * H, y - 0.5 * H, ex, y - 1.05 * H); ctx.quadraticCurveTo(ex + 0.06 * H, y - 0.5 * H, ex + 0.28 * H, y - 0.1 * H);
+      ctx.moveTo(ex - 0.2 * H, y - 0.32 * H); ctx.lineTo(ex + 0.2 * H, y - 0.32 * H); ctx.moveTo(ex - 0.1 * H, y - 0.6 * H); ctx.lineTo(ex + 0.1 * H, y - 0.6 * H);
+      ctx.stroke();
+      ctx.beginPath(); ctx.arc(ex, y - 0.1 * H, 0.14 * H, Math.PI, 0); ctx.stroke();
+    },
+    uk(ctx, x, y, H) {
+      ctx.fillStyle = "#eef0ee"; ctx.fillRect(x - 2.6 * H, y - 0.3 * H, 5.2 * H, 0.3 * H);
+      ctx.fillStyle = "#9cb98f"; ctx.fillRect(x - 2.6 * H, y - 0.36 * H, 5.2 * H, 0.07 * H);
+      const bx = x + 0.6 * H;
+      ctx.fillStyle = "#c9a96e"; ctx.fillRect(bx - 0.08 * H, y - 0.95 * H, 0.16 * H, 0.6 * H);
+      ctx.beginPath(); ctx.moveTo(bx - 0.1 * H, y - 0.95 * H); ctx.lineTo(bx, y - 1.15 * H); ctx.lineTo(bx + 0.1 * H, y - 0.95 * H); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(bx, y - 0.82 * H, 0.06 * H, 0, Math.PI * 2); ctx.fill();
+    },
+    iceland(ctx, x, y, H) {
+      ctx.fillStyle = "#e9f2f8";
+      ctx.beginPath(); ctx.moveTo(x - 2.6 * H, y); ctx.lineTo(x - 1.8 * H, y - 0.7 * H); ctx.lineTo(x - 1.1 * H, y - 0.35 * H); ctx.lineTo(x - 0.4 * H, y - 0.85 * H); ctx.lineTo(x + 0.6 * H, y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "rgba(150,190,220,.5)"; ctx.beginPath(); ctx.moveTo(x - 0.4 * H, y - 0.85 * H); ctx.lineTo(x + 0.6 * H, y); ctx.lineTo(x - 0.2 * H, y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#6b6f80"; ctx.beginPath(); ctx.moveTo(x + 0.9 * H, y); ctx.lineTo(x + 1.4 * H, y - 0.75 * H); ctx.lineTo(x + 1.65 * H, y - 0.75 * H); ctx.lineTo(x + 2.2 * H, y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#f59a5b"; ctx.fillRect(x + 1.42 * H, y - 0.78 * H, 0.21 * H, 0.05 * H);
+      ctx.fillStyle = "rgba(140,140,150,.35)"; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(x + (1.55 + i * 0.12) * H, y - (0.95 + i * 0.2) * H, (0.1 + i * 0.05) * H, 0, Math.PI * 2); ctx.fill(); }
+    },
+    newyork(ctx, x, y, H) {
+      drawSkyline(ctx, x + 0.6 * H, y, 4 * H, 0.9 * H, 11);
+      drawStatue(ctx, x - 2.0 * H, y, 1.1 * H);
+    },
+    africa(ctx, x, y, H) {
+      ctx.fillStyle = "#e9cf9a";
+      for (const [dx, rw, rh] of [[-1.8, 1.4, 0.28], [-0.2, 1.8, 0.22], [1.6, 1.3, 0.3]]) { ctx.beginPath(); ctx.ellipse(x + dx * H, y, rw * H, rh * H, 0, Math.PI, 0); ctx.fill(); }
+      ctx.fillStyle = "#d9b77a"; ctx.beginPath(); ctx.moveTo(x + 0.6 * H, y); ctx.lineTo(x + 1.2 * H, y - 0.8 * H); ctx.lineTo(x + 1.8 * H, y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#c29f62"; ctx.beginPath(); ctx.moveTo(x + 1.2 * H, y - 0.8 * H); ctx.lineTo(x + 1.8 * H, y); ctx.lineTo(x + 1.35 * H, y); ctx.closePath(); ctx.fill();
+      drawPalm(ctx, x - 1.6 * H, y - 0.1 * H, 0.9 * H); drawPalm(ctx, x - 1.15 * H, y - 0.05 * H, 0.7 * H);
+    }
+  };
+  function drawHorizonSites(ctx, cam, hdg) {
+    ctx.font = '600 10px "JetBrains Mono", monospace'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (const site of HORIZON_SITES) {
+      const dx = site.x - KS.mx, dy = site.y - KS.my, d = Math.hypot(dx, dy);
+      const az = norm180(deg(Math.atan2(dx, dy)) - hdg);
+      if (Math.abs(az) > 115) continue;
+      const x = cam.cx + az * cam.k, y = cam.hy;
+      const H = cam.k * clamp(5200 / Math.max(d, 60), 1.2, 24);   // plus on approche, plus le décor grossit
+      ctx.save();
+      ctx.globalAlpha = clamp(1.3 - d / 2400, 0.4, 1);
+      SITES[site.draw](ctx, x, y, H);
+      ctx.restore();
+      const txt = `${site.name} · ${fmt0(d)} NM`, tw = ctx.measureText(txt).width + 12;
+      ctx.fillStyle = "rgba(255,255,255,.78)"; ctx.fillRect(x - tw / 2, y - H * 1.3 - 18, tw, 15);
+      ctx.fillStyle = "#4a4f6c"; ctx.fillText(txt, x, y - H * 1.3 - 10.5);
+    }
+  }
+
+  // Carte des vents autour du cargo (fond de la boussole en mode kite), recalculée de temps en temps
+  const MAP_R = 900;   // rayon de la carte en milles
+  let windMap = null, windMapAt = { x: 1e9, y: 1e9 };
+  function windMapCanvas(size) {
+    if (windMap && windMap.width === size && Math.hypot(KS.mx - windMapAt.x, KS.my - windMapAt.y) < 12) return windMap;
+    const cv = windMap && windMap.width === size ? windMap : document.createElement("canvas");
+    cv.width = cv.height = size;
+    const c = cv.getContext("2d"), n = 36, cell = size / n;
+    const stops = [[0, "#bfeee0"], [0.3, "#f9e7a8"], [0.55, "#ffcfb3"], [0.75, "#f6a6bd"], [1, "#b9a6ff"]];
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      const mx = KS.mx + ((i + 0.5) / n * 2 - 1) * MAP_R, my = KS.my - ((j + 0.5) / n * 2 - 1) * MAP_R;
+      c.fillStyle = colorAt(stops, (windField(mx, my, 0).speed - 5) / 30);
+      c.fillRect(i * cell, j * cell, cell + 1, cell + 1);
+    }
+    windMap = cv; windMapAt = { x: KS.mx, y: KS.my };
+    return cv;
+  }
+
   function drawForward(dt) {
     const { ctx, w, h } = SC;
     if (G.mode === "game" && !S) return;
     const t = FW.time += dt;
     const kiteMode = G.mode === "kite";
-    const windKn = P.windSpeed, windFrom = kiteMode ? KS.fromRel : norm180(P.windDir - P.heading);
-    const flowRel = norm180(windFrom + 180);
-    const vShip = kiteMode ? KCFG.VSHIP : P.speed;
+    // valeurs « visuelles » lissées : plus d'à-coups quand le cap ou la météo changent
+    const kv = Math.min(1, dt * 2.2), kw = Math.min(1, dt * 0.6);
+    FW.hdg = FW.hdg === undefined ? P.heading : FW.hdg + norm180(P.heading - FW.hdg) * kv;
+    FW.wkn = FW.wkn === undefined ? P.windSpeed : lerp(FW.wkn, P.windSpeed, kw);
+    FW.wfrom = FW.wfrom === undefined ? P.windDir : FW.wfrom + norm180(P.windDir - FW.wfrom) * kw;
+    FW.v = FW.v === undefined ? P.speed : lerp(FW.v, P.speed, Math.min(1, dt * 1.5));
+    const hdg = FW.hdg, windKn = FW.wkn, vShip = FW.v;
+    const flowRel = norm180(FW.wfrom + 180 - hdg);
     FW.dist += vShip * KN * dt * 2;
     const sea = seaState(windKn, flowRel);
     const storm = smooth((windKn - 28) / 14);
     const cam = camFor(w, h);
     const cabin = VIEW === "cabin";
     // mouvements du navire : roulis, tangage et pilonnement proportionnels à la houle
-    const roll = rad(clamp(sea.A * 1.5, 0.3, 14) * Math.sin(t * 0.55) * (cabin ? 1.2 : 1));
-    const pitchPx = clamp(sea.A * 0.7, 0.2, 7) * Math.sin(t * 0.8 + 1) * cam.k * 0.8;
-    const heavePx = sea.A * Math.sin(t * 0.9 + 2) * cam.k * 0.6;
+    // houle longue : deux oscillations lentes superposées, amplitudes plafonnées
+    const swell = clamp(sea.A, 0.3, 9);
+    const roll = rad(Math.min(6, 0.35 + swell * 0.55) * (0.7 * Math.sin(t * 0.31) + 0.3 * Math.sin(t * 0.53 + 1.3)) * (cabin ? 1.15 : 1));
+    const pitchPx = Math.min(3, 0.15 + swell * 0.25) * (0.75 * Math.sin(t * 0.37 + 0.6) + 0.25 * Math.sin(t * 0.71)) * cam.k;
+    const heavePx = Math.min(4, swell * 0.35) * (0.6 * Math.sin(t * 0.42 + 2) + 0.4 * Math.sin(t * 0.23)) * cam.k * 0.5;
 
     ctx.save();
     ctx.translate(cam.cx, cam.hy); ctx.rotate(roll); ctx.translate(-cam.cx, -cam.hy + pitchPx + heavePx);
     const sky = ctx.createLinearGradient(0, cam.hy - h, 0, cam.hy);
     sky.addColorStop(0, "#9dbcd2"); sky.addColorStop(0.55, "#c9d7e2"); sky.addColorStop(0.88, "#ead9de"); sky.addColorStop(1, "#f7d4cb");
     ctx.fillStyle = sky; ctx.fillRect(-w * 0.3, cam.hy - h * 1.2, w * 1.6, h * 1.2 + 2);
-    const sunAz = norm180((kiteMode ? 200 : 255) - (kiteMode ? 0 : P.heading));
+    const sunAz = norm180(255 - hdg);
     const sx = cam.cx + sunAz * cam.k;
     if (sx > -w * 0.5 && sx < w * 1.5) {
       const g = ctx.createRadialGradient(sx, cam.hy - 8 * cam.k, 0, sx, cam.hy - 8 * cam.k, h * 0.7);
@@ -2004,13 +2302,14 @@
       ctx.fillStyle = g; ctx.fillRect(-w * 0.3, cam.hy - h * 1.2, w * 1.6, h * 1.2);
     }
     for (let i = 0; i < 9; i++) {   // stratus fixes dans le monde
-      const caz = norm180(i * 47 + 13 - (kiteMode ? 0 : P.heading) + t * 0.15 * (windKn / 20));
+      const caz = norm180(i * 47 + 13 - hdg + t * 0.15 * (windKn / 20));
       const cxp = cam.cx + caz * cam.k, cyp = cam.hy - (4 + (i * 7) % 18) * cam.k;
       if (cxp < -w * 0.5 || cxp > w * 1.5) continue;
       const sc = cam.k / 5;
       ctx.fillStyle = "rgba(255,250,252,.5)";
       ctx.beginPath(); ctx.ellipse(cxp, cyp, 110 * sc, 7 * sc, 0, 0, Math.PI * 2); ctx.ellipse(cxp - 40 * sc, cyp - 4 * sc, 60 * sc, 8 * sc, 0, 0, Math.PI * 2); ctx.fill();
     }
+    if (kiteMode) drawHorizonSites(ctx, cam, hdg);
     // mer : rangées de vagues de l'horizon vers le navire (les proches masquent les lointaines)
     const azMax = Math.min(175, (w * 0.75) / cam.k + 10), step = Math.max(1.2, azMax / 70);
     const g2 = ctx.createLinearGradient(0, cam.hy, 0, h);
@@ -2048,6 +2347,7 @@
     const hz = ctx.createLinearGradient(0, cam.hy - 6 * cam.k, 0, cam.hy + 3 * cam.k);
     hz.addColorStop(0, "rgba(246,226,226,0)"); hz.addColorStop(0.6, "rgba(246,226,226,.55)"); hz.addColorStop(1, "rgba(220,226,234,0)");
     ctx.fillStyle = hz; ctx.fillRect(-w * 0.3, cam.hy - 6 * cam.k, w * 1.6, 9 * cam.k);
+    if (!kiteMode) drawRouteDecor(ctx, cam, hdg, t, sea);
     if (cam.pos.z < 0) {   // sillage
       for (let i = 0; i < 16; i++) {
         const z = -i * 7, spread = 3 + i * 1.6;
@@ -2256,7 +2556,7 @@
   const bdir = a => [Math.sin(rad(a)), -Math.cos(rad(a))];
   const angLerp = (a, b, k) => a + norm180(b - a) * k;
   function compassData() {
-    if (G.mode === "kite") return { heading: 0, speed: KCFG.VSHIP, windDir: KS.fromRel, windSpeed: KS.W10, app: norm360(KS.down + 180), appKn: KS.Wa / KN, pull: KS.az, T: KS.T, tmax: KCFG.TMAX, flying: KS.crashed <= 0, route: null };
+    if (G.mode === "kite") return { heading: P.heading, speed: P.speed, windDir: KS.windFrom, windSpeed: KS.W10, app: norm360(P.heading + KS.down + 180), appKn: KS.Wa / KN, pull: P.heading + KS.az, T: KS.T, tmax: KCFG.TMAX, flying: KS.crashed <= 0, route: null };
     const sim = S.sim;
     return { heading: P.heading, speed: P.speed, windDir: P.windDir, windSpeed: P.windSpeed, app: sim.deck.fromBearing, appKn: sim.deck.speed / KN,
       pull: P.heading + sim.pullAz, T: sim.T, tmax: CFG.TMAX, flying: sim.state === "flying" && sim.fwd > 1, route: G.mode === "game" ? GAME.ROUTE : null };
@@ -2272,7 +2572,18 @@
     const g = ctx.createRadialGradient(cx, cy, R * 0.1, cx, cy, R);
     g.addColorStop(0, "#ffffff"); g.addColorStop(0.75, "#f4f1fc"); g.addColorStop(1, "#e7e2f6");
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "rgba(124,108,240,.35)"; ctx.lineWidth = 1.2; ctx.stroke();
+    if (G.mode === "kite") {
+      ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.clip();
+      ctx.globalAlpha = 0.75; ctx.drawImage(windMapCanvas(Math.round(R * 2)), cx - R, cy - R, R * 2, R * 2); ctx.globalAlpha = 1;
+      ctx.font = `${Math.max(10, R * 0.15)}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      const icons = { France: "🗼", "Royaume-Uni": "🕰", Islande: "🌋", "New York": "🗽", Afrique: "🌴" };
+      for (const site of HORIZON_SITES) {
+        const dx = site.x - KS.mx, dy = site.y - KS.my, d = Math.hypot(dx, dy), k2 = Math.min(1, d / MAP_R) * 0.86 * R / Math.max(d, 1);
+        ctx.fillText(icons[site.name], cx + dx * k2, cy - dy * k2);
+      }
+      ctx.restore();
+    }
+    ctx.strokeStyle = "rgba(124,108,240,.35)"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
     for (const rr of [0.33, 0.66]) { ctx.strokeStyle = "rgba(124,108,240,.12)"; ctx.beginPath(); ctx.arc(cx, cy, R * rr, 0, Math.PI * 2); ctx.stroke(); }
     const [wdx, wdy] = bdir(d.windDir + 180), wsp = d.windSpeed / 30;
     ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R - 2, 0, Math.PI * 2); ctx.clip();
@@ -2289,7 +2600,7 @@
       ctx.beginPath(); ctx.moveTo(cx + dx * r1, cy + dy * r1); ctx.lineTo(cx + dx * R * 0.98, cy + dy * R * 0.98); ctx.stroke();
     }
     ctx.font = `600 ${Math.max(9, R * 0.11)}px "JetBrains Mono", monospace`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    (G.mode === "kite" ? [["AV", 0], ["TRI", 90], ["AR", 180], ["BÂB", 270]] : [["N", 0], ["E", 90], ["S", 180], ["O", 270]]).forEach(([l, a]) => {
+    [["N", 0], ["E", 90], ["S", 180], ["O", 270]].forEach(([l, a]) => {
       const [dx, dy] = bdir(a);
       ctx.fillStyle = a === 0 ? "#e0648a" : "#6b7090";
       ctx.fillText(l, cx + dx * R * 0.72, cy + dy * R * 0.72);

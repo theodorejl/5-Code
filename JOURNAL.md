@@ -82,3 +82,17 @@ Suivi de chaque demande (prompt) et des modifications apportées, du plus ancien
   - Taille à l'écran : surtout liée à la surface du kite, la ligne s'épaissit pour les grands kites. Boutons rapides plus contrastés (15 m² / 480 m², 40 m / 900 m).
   - Briefing en deux pages au début de chaque mode : but et touches, puis comment lire l'écran. Il s'ouvre aussi à la première arrivée dans le mode « Pilote de kite ».
   - Correction : la vue 3e personne n'affiche plus à tort les vitres de la cabine avec une ligne courte. Au repos, le kite se stabilise vers 45° au lieu de rester au zénith.
+
+## 9. Fluidité, repères en mer, pays à l'horizon, pilotage du cargo
+- **Date** : 2026-10-10 14:19
+- **Temps de réflexion** : non disponible · **Tokens** : non disponible
+- **Demande** : mouvements du bateau plus fluides et moins rapides ; repères visuels en mer (bateaux de pêche, voiliers, navires militaires, îles) pour situer sa progression dans le défi ; dans le mode kite, voir à l'horizon les destinations selon le cap du cargo (tour Eiffel et Mont Blanc vers la France, désert et palmiers vers l'Afrique, statue de la Liberté vers New York…), qui grossissent quand on s'approche ; pouvoir diriger le cargo pour aller chercher plus ou moins de vent.
+- **Modifications** :
+  - Fluidité : le cap, la vitesse et le vent affichés suivent les vraies valeurs en douceur (plus de saut de 5° à chaque appui). Roulis, tangage et pilonnement plus lents et plafonnés, faits de deux oscillations superposées.
+  - Défi Atlantique : une vingtaine de repères le long de la route, dans une échelle visuelle compressée pour avoir le temps de les voir. On croise un parc éolien, un porte-conteneurs, les falaises de Douvres, le cap Gris-Nez, le phare de Bishop Rock, des voiliers, des chalutiers, des navires militaires, les icebergs des Grands Bancs, Terre-Neuve, le phare de Nantucket, puis New York avec la statue de la Liberté. Un message annonce chaque lieu nommé (à bâbord, à tribord ou droit devant).
+  - Pilote de kite :
+    - Carte schématique de l'Atlantique, avec 6 zones de vent : centre, vents d'ouest forts au nord, alizés au sud, calmes près de l'Afrique, petit vent d'est, dépression au nord-est.
+    - Le cargo se pilote avec Q/A et D pour le cap, Z/W et S pour la vitesse, ou avec les potards cap et vitesse, désormais visibles dans ce mode. Le kite garde sa place dans le ciel quand le cargo tourne. Un conseil s'affiche quand le vent vient de face.
+    - À l'horizon, selon le cap : France (tour Eiffel, Mont Blanc), Royaume-Uni (falaises, Big Ben), Islande (glacier, volcan), New York (gratte-ciel, statue de la Liberté), Afrique (dunes, pyramide, palmiers). Leur taille grandit quand on s'en approche et leur distance est affichée.
+    - La boussole (02) montre la carte des vents autour du cargo, du vert (calme) au violet (fort), avec les icônes des destinations. Elle a maintenant le nord en haut.
+  - Briefing du mode kite complété : touches du cargo, carte des vents, lecture de l'horizon.
